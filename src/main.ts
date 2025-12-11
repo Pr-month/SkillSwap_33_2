@@ -15,4 +15,7 @@ async function bootstrap() {
   );
   await app.listen(process.env.PORT ?? 3000);
 }
-bootstrap();
+bootstrap().catch((err) => {
+  console.error('Ошибка при запуске приложения:', err);
+  process.exit(1); // Завершаем процесс с кодом ошибки
+});
