@@ -2,10 +2,11 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 import { AppConfig } from './config/app.config';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true, // Удаляет поля, которых нет в DTO
@@ -13,7 +14,7 @@ async function bootstrap() {
       transform: true, // Автоматическая типизация данных
     }),
   );
-  
+
   const configService = app.get(ConfigService);
   const appConfigData = configService.get<AppConfig>('APP_CONFIG');
   await app.listen(appConfigData?.port ?? 3000);
