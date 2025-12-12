@@ -1,9 +1,9 @@
-import { ConfigType, registerAs } from "@nestjs/config";
+import { ConfigType, registerAs } from '@nestjs/config';
 
 export const appConfig = registerAs('APP_CONFIG', () => ({
-    port: process.env.PORT || 3000,
-    environment: process.env.NODE_ENV || 'development',
-    hashSalt: process.env.HASH_SALT ||  10,
-}))
+  port: process.env.PORT || 3000,
+  environment: process.env.NODE_ENV || 'development',
+  hashSalt: process.env.HASH_SALT || 10,
+}));
 
-export type AppConfig = ConfigType<typeof appConfig>
+export type AppConfig = ConfigType<typeof appConfig>;
