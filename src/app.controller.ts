@@ -7,7 +7,7 @@ export class AppController {
   constructor(
     private readonly appService: AppService,
     @Inject(appConfig.KEY)
-    private readonly appConfig: AppConfig
+    private readonly appConfig: AppConfig,
   ) {}
 
   @Get()
