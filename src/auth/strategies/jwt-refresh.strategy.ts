@@ -4,12 +4,14 @@ import { ExtractJwt, Strategy } from 'passport-jwt'; // npm install passport-jwt
 import { Request } from 'express';
 import { ConfigService } from '@nestjs/config';
 
+// Временный интерфейс
 interface JwtPayload {
   sub: string;
   email: string;
   roles?: string[];
 }
 
+// Временный интерфейс
 interface ValidateResult {
   userId: string;
   email: string;
