@@ -1,4 +1,3 @@
-import { TParentSkillSubSkills } from '../types/skill.type';
 import { UserRole } from '../users/enums';
 
 export type TJwtPayload = {
@@ -7,21 +6,6 @@ export type TJwtPayload = {
   role: UserRole;
 };
 
-export enum GenderOption {
-  MALE = 'male',
-  FEMALE = 'female',
-}
-
-export type TAuthResponse = {
+export type TAuthResponse = Request & {
   user: TJwtPayload;
-  createdAt: string | number | Date;
-  name: string;
-  image: string | File[];
-  city: string;
-  gender: GenderOption;
-  birthdayDate: string;
-  description: string;
-  likes: string[];
-  canTeach: TParentSkillSubSkills[];
-  wantsToLearn: TParentSkillSubSkills[];
 };
