@@ -8,7 +8,7 @@ import { appConfig } from './config/app.config';
 import { JwtConfig, jwtConfig } from './config/jwt.config';
 import { JwtModule, JwtSignOptions } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AppDataSource } from './config/typeorm.config';
+import { AppDataSource } from './config/db.config';
 
 @Module({
   imports: [
