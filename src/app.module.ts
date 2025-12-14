@@ -5,7 +5,10 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { appConfig } from './config/app.config';
-import { jwtConfig } from './config/jwt.config';
+import { JwtConfig, jwtConfig } from './config/jwt.config';
+import { JwtModule, JwtSignOptions } from '@nestjs/jwt';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { DatabaseConfig, dbConfig } from './config/db.config';
 
 @Module({
   imports: [
@@ -13,12 +16,25 @@ import { jwtConfig } from './config/jwt.config';
     AuthModule,
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [appConfig, jwtConfig],
+      load: [appConfig, jwtConfig, dbConfig],
     }),
-    // Убрал JwtModule - используем локальный в AuthModule
-    // 1. Нет дублирования — JwtModule только в AuthModule где нужен,
-    // 2. ConfigModule глобальный — все модули видят JWT_CONFIG,
-    // 3. Чистая архитектура — каждый модуль отвечает за свои зависимости.
+    JwtModule.registerAsync({
+      global: true,
+      imports: [ConfigModule],
+      inject: [jwtConfig.KEY],
+      useFactory: (config: JwtConfig) => ({
+        secret: config.accessToken,
+        signOptions: {
+          expiresIn: config.accessExpiresIn as JwtSignOptions['expiresIn'],
+        },
+      }),
+    }),
+    TypeOrmModule.forRootAsync({
+      inject: [dbConfig.KEY],
+      useFactory: (config: DatabaseConfig): DatabaseConfig => {
+        return config;
+      },
+    }),
   ],
   controllers: [AppController],
   providers: [AppService],
