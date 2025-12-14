@@ -8,7 +8,7 @@ import { appConfig } from './config/app.config';
 import { JwtConfig, jwtConfig } from './config/jwt.config';
 import { JwtModule, JwtSignOptions } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AppDataSource } from './config/db.config';
+import { DatabaseConfig, dbConfig } from './config/db.config';
 
 @Module({
   imports: [
@@ -16,7 +16,7 @@ import { AppDataSource } from './config/db.config';
     AuthModule,
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [appConfig, jwtConfig],
+      load: [appConfig, jwtConfig, dbConfig],
     }),
     JwtModule.registerAsync({
       global: true,
@@ -29,7 +29,10 @@ import { AppDataSource } from './config/db.config';
         },
       }),
     }),
-    TypeOrmModule.forRoot(AppDataSource.options),
+    TypeOrmModule.forRootAsync({
+      inject: [dbConfig.KEY],
+      useFactory: (config: DatabaseConfig) => config,
+    }),
   ],
   controllers: [AppController],
   providers: [AppService],
