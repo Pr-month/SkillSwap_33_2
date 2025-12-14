@@ -7,6 +7,8 @@ import { ConfigModule } from '@nestjs/config';
 import { appConfig } from './config/app.config';
 import { JwtConfig, jwtConfig } from './config/jwt.config';
 import { JwtModule, JwtSignOptions } from '@nestjs/jwt';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { DatabaseConfig, dbConfig } from './config/db.config';
 
 @Module({
   imports: [
@@ -14,7 +16,7 @@ import { JwtModule, JwtSignOptions } from '@nestjs/jwt';
     AuthModule,
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [appConfig, jwtConfig],
+      load: [appConfig, jwtConfig, dbConfig],
     }),
     JwtModule.registerAsync({
       global: true,
@@ -26,6 +28,10 @@ import { JwtModule, JwtSignOptions } from '@nestjs/jwt';
           expiresIn: config.accessExpiresIn as JwtSignOptions['expiresIn'],
         },
       }),
+    }),
+    TypeOrmModule.forRootAsync({
+      inject: [dbConfig.KEY],
+      useFactory: (config: DatabaseConfig) => config,
     }),
   ],
   controllers: [AppController],
