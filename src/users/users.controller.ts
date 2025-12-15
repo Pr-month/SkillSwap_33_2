@@ -52,4 +52,13 @@ export class UsersController {
     // временная реализация без БД
     return this.usersService.updateCurrentUser(Number(sub), updateMeDto);
   }
+  
+  @Get('me')
+  @UseGuards(JwtAccessGuard)
+  getMe(@Req() req: TAuthResponse) {
+    const { sub } = req.user;
+
+    // временная реализация без БД
+    return this.usersService.getCurrentUser(Number(sub));
+  }
 }
