@@ -6,10 +6,14 @@ import {
   Patch,
   Param,
   Delete,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { JwtAccessGuard } from 'src/auth/guards/jwt-access.guard';
+import { TAuthResponse } from 'src/auth/types';
 
 @Controller('users')
 export class UsersController {
@@ -38,5 +42,14 @@ export class UsersController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.usersService.remove(+id);
+  }
+
+  @Get('me')
+  @UseGuards(JwtAccessGuard)
+  getMe(@Req() req: TAuthResponse) {
+    const { sub } = req.user;
+
+    // временная реализация без БД
+    return this.usersService.getCurrentUser(Number(sub));
   }
 }
