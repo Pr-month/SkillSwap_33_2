@@ -1,6 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { GenderOption, UserRole } from './enums';
 
 @Injectable()
 export class UsersService {
@@ -23,4 +24,31 @@ export class UsersService {
   remove(id: number) {
     return `This action removes a #${id} user`;
   }
+
+  async updateCurrentUser(id: number, updateData: UpdateUserDto) {
+    // @todo: заменить на обновление через репозиторий после создания UserEntity
+    if (id !== MOCK_USER.id) {
+      throw new NotFoundException('User not found');
+    }
+
+    Object.assign(MOCK_USER, updateData);
+
+    // Не возвращаем пароль и refreshToken
+    const { password, refreshToken, ...safeUser } = MOCK_USER;
+    return safeUser;
+  }
 }
+
+const MOCK_USER = {
+  id: 1,
+  name: 'Test User',
+  email: 'test@mail.com',
+  password: 'password',
+  about: 'Test profile',
+  birthdate: null,
+  city: 'Moscow',
+  gender: GenderOption.MALE,
+  avatar: null,
+  refreshToken: 'refresh_token_hash',
+  role: UserRole.USER,
+};
