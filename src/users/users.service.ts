@@ -26,18 +26,32 @@ export class UsersService {
     return `This action removes a #${id} user`;
   }
 
-  async getCurrentUser(id: number) {
-    // @todo: заменить на запрос к БД после появления UserEntity и репозитория
+  async updateCurrentUser(id: number, updateData: UpdateUserDto) {
     if (id !== MOCK_USER.id) {
       throw new NotFoundException('User not found');
     }
 
+    Object.assign(MOCK_USER, updateData);
+
+    // Не возвращаем пароль и refreshToken
     // Возвращаем фиктивного пользователя
     // @todo: заменить на реальные данные из сущности User 
     const { password, refreshToken, ...safeUser } = MOCK_USER;
     return safeUser;
   }
-}
+    // @todo: заменить на обновление через репозиторий после создания UserEntity
+  async getCurrentUser(id: number) {
+    // @todo: заменить на запрос к БД после появления UserEntity и репозитория
+    if (id !== MOCK_USER.id) {
+      throw new NotFoundException('User not found');
+    }
+    // Не возвращаем пароль и refreshToken
+    // Возвращаем фиктивного пользователя
+    // @todo: заменить на реальные данные из сущности User 
+    const { password, refreshToken, ...safeUser } = MOCK_USER;
+    return safeUser;
+
+  }
 
 const MOCK_USER = {
   id: 1,

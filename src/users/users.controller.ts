@@ -44,6 +44,15 @@ export class UsersController {
     return this.usersService.remove(+id);
   }
 
+  @Patch('me')
+  @UseGuards(JwtAccessGuard)
+  updateMe(@Req() req: TAuthResponse, @Body() updateMeDto: UpdateUserDto) {
+    const { sub } = req.user;
+
+    // временная реализация без БД
+    return this.usersService.updateCurrentUser(Number(sub), updateMeDto);
+  }
+  
   @Get('me')
   @UseGuards(JwtAccessGuard)
   getMe(@Req() req: TAuthResponse) {
