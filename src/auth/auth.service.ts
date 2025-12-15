@@ -56,4 +56,8 @@ export class AuthService {
       refresh_token: refreshToken,
     };
   }
+
+  logout(): void {
+    return;
+  }
 }

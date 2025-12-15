@@ -28,4 +28,12 @@ export class AuthController {
     const { sub, email, role } = req.user;
     return this.authService.refresh({ sub, email, role });
   }
+
+  @Post('logout')
+  @HttpCode(200)
+  @UseGuards(JwtRefreshGuard)
+  logout() {
+    this.authService.logout();
+    return { message: 'Logged out successfully' };
+  }
 }
