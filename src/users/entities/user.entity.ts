@@ -1,15 +1,6 @@
 import { IsDefined, IsEmail, IsNotEmpty, MinLength } from 'class-validator';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
-
-enum UserRole {
-  user = 'USER',
-  admin = 'ADMIN',
-}
-
-enum UserGender {
-  male = 'мужской',
-  female = 'женский',
-}
+import { GenderOption, UserRole } from '../enums';
 
 @Entity()
 export class User {
@@ -44,11 +35,11 @@ export class User {
 
   @Column({
     type: 'enum',
-    enum: UserGender,
+    enum: GenderOption,
   })
   @IsDefined()
   @IsNotEmpty()
-  gender: string;
+  gender: GenderOption;
 
   @Column()
   avatar: string;
@@ -56,7 +47,7 @@ export class User {
   @Column({
     type: 'enum',
     enum: UserRole,
-    default: UserRole.user,
+    default: UserRole.USER,
   })
   role: UserRole;
 
