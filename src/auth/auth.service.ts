@@ -13,15 +13,7 @@ export interface LoginResponse {
 export class AuthService {
   constructor(private readonly jwtService: JwtService) {}
 
-  async login(loginDto: LoginDto): Promise<LoginResponse> {
-    const user = { id: '1', email: loginDto.email, role: UserRole.USER };
-
-    const payload: TJwtPayload = {
-      sub: user.id,
-      email: user.email,
-      role: user.role,
-    };
-
+  private async _generateTokens(payload: TJwtPayload): Promise<LoginResponse> {
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(payload, {
         secret: process.env.JWT_ACCESS_TOKEN || 'access_secret',
@@ -39,22 +31,20 @@ export class AuthService {
     };
   }
 
-  async refresh(payload: TJwtPayload): Promise<LoginResponse> {
-    const [accessToken, refreshToken] = await Promise.all([
-      this.jwtService.signAsync(payload, {
-        secret: process.env.JWT_ACCESS_TOKEN || 'access_secret',
-        expiresIn: '1h' as const,
-      }),
-      this.jwtService.signAsync(payload, {
-        secret: process.env.JWT_REFRESH_TOKEN || 'refresh_secret',
-        expiresIn: '7d' as const,
-      }),
-    ]);
+  async login(loginDto: LoginDto): Promise<LoginResponse> {
+    const user = { id: '1', email: loginDto.email, role: UserRole.USER };
 
-    return {
-      access_token: accessToken,
-      refresh_token: refreshToken,
+    const payload: TJwtPayload = {
+      sub: user.id,
+      email: user.email,
+      role: user.role,
     };
+
+    return this._generateTokens(payload);
+  }
+
+  async refresh(payload: TJwtPayload): Promise<LoginResponse> {
+    return this._generateTokens(payload);
   }
 
   logout(): void {
