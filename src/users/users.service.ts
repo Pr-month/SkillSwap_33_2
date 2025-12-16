@@ -1,11 +1,24 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import { GenderOption, UserRole } from './enums';
+import { UpdatePasswordDto } from './dto/update-password.dto';
+import * as bcrypt from 'bcrypt';
+import { type AppConfig, appConfig } from 'src/config/app.config';
 
 @Injectable()
 export class UsersService {
+  constructor(
+    @Inject(appConfig.KEY)
+    private appConfig: AppConfig,
+  ) {}
+
   create(createUserDto: CreateUserDto) {
     return 'This action adds a new user';
   }
@@ -35,11 +48,11 @@ export class UsersService {
 
     // Не возвращаем пароль и refreshToken
     // Возвращаем фиктивного пользователя
-    // @todo: заменить на реальные данные из сущности User 
+    // @todo: заменить на реальные данные из сущности User
     const { password, refreshToken, ...safeUser } = MOCK_USER;
     return safeUser;
   }
-    // @todo: заменить на обновление через репозиторий после создания UserEntity
+  // @todo: заменить на обновление через репозиторий после создания UserEntity
   async getCurrentUser(id: number) {
     // @todo: заменить на запрос к БД после появления UserEntity и репозитория
     if (id !== MOCK_USER.id) {
@@ -47,11 +60,50 @@ export class UsersService {
     }
     // Не возвращаем пароль и refreshToken
     // Возвращаем фиктивного пользователя
-    // @todo: заменить на реальные данные из сущности User 
+    // @todo: заменить на реальные данные из сущности User
     const { password, refreshToken, ...safeUser } = MOCK_USER;
     return safeUser;
-
   }
+
+  async updatePassword(id: number, updatePassword: UpdatePasswordDto) {
+    if (id !== MOCK_USER.id) {
+      throw new NotFoundException('User not found');
+    }
+
+    const newPassword = updatePassword.password;
+    const errors: string[] = [];
+    if (newPassword.length < 8) {
+      errors.push('Пароль должен содержать минимум 8 символов.');
+    }
+
+    if (!/[A-Z]/.test(newPassword)) {
+      errors.push('Добавьте хотя бы одну заглавную букву.');
+    }
+
+    if (!/\d/.test(newPassword)) {
+      errors.push('Добавьте хотя бы одну цифру.');
+    }
+
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(newPassword)) {
+      errors.push('Добавьте хотя бы один спецсимвол.');
+    }
+
+    if (errors) {
+      throw new BadRequestException(errors.join(' '));
+    }
+
+    const hashedPassword = await bcrypt.hash(
+      newPassword,
+      this.appConfig.hashSalt,
+    );
+
+    Object.assign(MOCK_USER, { password: hashedPassword });
+
+    // @todo: заменить на реальные данные из сущности User
+    const { password, refreshToken, ...safeUser } = MOCK_USER;
+    return safeUser;
+  }
+}
 
 const MOCK_USER = {
   id: 1,

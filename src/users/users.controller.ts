@@ -14,6 +14,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { JwtAccessGuard } from 'src/auth/guards/jwt-access.guard';
 import { TAuthResponse } from 'src/auth/types';
+import { UpdatePasswordDto } from './dto/update-password.dto';
 
 @Controller('users')
 export class UsersController {
@@ -52,7 +53,7 @@ export class UsersController {
     // временная реализация без БД
     return this.usersService.updateCurrentUser(Number(sub), updateMeDto);
   }
-  
+
   @Get('me')
   @UseGuards(JwtAccessGuard)
   getMe(@Req() req: TAuthResponse) {
@@ -60,5 +61,17 @@ export class UsersController {
 
     // временная реализация без БД
     return this.usersService.getCurrentUser(Number(sub));
+  }
+
+  @Patch('me/password')
+  @UseGuards(JwtAccessGuard)
+  updatePassword(
+    @Req() req: TAuthResponse,
+    @Body() updatePassword: UpdatePasswordDto,
+  ) {
+    const { sub } = req.user;
+
+    // @todo: заменить на тип string
+    return this.usersService.updatePassword(Number(sub), updatePassword);
   }
 }
