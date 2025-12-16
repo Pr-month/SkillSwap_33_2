@@ -52,7 +52,7 @@ export class UsersController {
     // временная реализация без БД
     return this.usersService.updateCurrentUser(Number(sub), updateMeDto);
   }
-  
+
   @Get('me')
   @UseGuards(JwtAccessGuard)
   getMe(@Req() req: TAuthResponse) {

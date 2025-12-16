@@ -1,7 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { User } from './entities/user.entity';
 import { GenderOption, UserRole } from './enums';
 
 @Injectable()
@@ -35,11 +34,11 @@ export class UsersService {
 
     // Не возвращаем пароль и refreshToken
     // Возвращаем фиктивного пользователя
-    // @todo: заменить на реальные данные из сущности User 
+    // @todo: заменить на реальные данные из сущности User
     const { password, refreshToken, ...safeUser } = MOCK_USER;
     return safeUser;
   }
-    // @todo: заменить на обновление через репозиторий после создания UserEntity
+  // @todo: заменить на обновление через репозиторий после создания UserEntity
   async getCurrentUser(id: number) {
     // @todo: заменить на запрос к БД после появления UserEntity и репозитория
     if (id !== MOCK_USER.id) {
@@ -47,11 +46,11 @@ export class UsersService {
     }
     // Не возвращаем пароль и refreshToken
     // Возвращаем фиктивного пользователя
-    // @todo: заменить на реальные данные из сущности User 
+    // @todo: заменить на реальные данные из сущности User
     const { password, refreshToken, ...safeUser } = MOCK_USER;
     return safeUser;
-
   }
+}
 
 const MOCK_USER = {
   id: 1,
