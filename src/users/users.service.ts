@@ -2,9 +2,17 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { GenderOption, UserRole } from './enums';
+import { InjectRepository } from '@nestjs/typeorm';
+import { User } from './entities/user.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class UsersService {
+  constructor(
+    @InjectRepository(User)
+    private readonly usersRepository: Repository<User>,
+  ) {}
+  
   create(createUserDto: CreateUserDto) {
     return 'This action adds a new user';
   }
@@ -17,7 +25,7 @@ export class UsersService {
     return `This action returns a #${id} user`;
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
+  update(id: string, updateUserDto: UpdateUserDto) {
     return `This action updates a #${id} user`;
   }
 
@@ -25,43 +33,26 @@ export class UsersService {
     return `This action removes a #${id} user`;
   }
 
-  async updateCurrentUser(id: number, updateData: UpdateUserDto) {
-    if (id !== MOCK_USER.id) {
+  async getCurrentUser(id: string) {
+    const user = await this.usersRepository.findOne({ where: { id } });
+    if (!user) {
       throw new NotFoundException('User not found');
     }
 
-    Object.assign(MOCK_USER, updateData);
-
-    // Не возвращаем пароль и refreshToken
-    // Возвращаем фиктивного пользователя
-    // @todo: заменить на реальные данные из сущности User
-    const { password, refreshToken, ...safeUser } = MOCK_USER;
-    return safeUser;
+    return user;
   }
-  // @todo: заменить на обновление через репозиторий после создания UserEntity
-  async getCurrentUser(id: number) {
-    // @todo: заменить на запрос к БД после появления UserEntity и репозитория
-    if (id !== MOCK_USER.id) {
-      throw new NotFoundException('User not found');
-    }
-    // Не возвращаем пароль и refreshToken
-    // Возвращаем фиктивного пользователя
-    // @todo: заменить на реальные данные из сущности User
-    const { password, refreshToken, ...safeUser } = MOCK_USER;
-    return safeUser;
+
+  async updateCurrentUser(
+    id: string,
+    updateData: UpdateUserDto,
+  ): Promise<User> {
+    const user = await this.usersRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new NotFoundException('User not found')
+    };
+
+    Object.assign(user, updateData);
+
+    return this.usersRepository.save(user); 
   }
 }
-
-const MOCK_USER = {
-  id: 1,
-  name: 'Test User',
-  email: 'test@mail.com',
-  password: 'password',
-  about: 'Test profile',
-  birthdate: null,
-  city: 'Moscow',
-  gender: GenderOption.MALE,
-  avatar: null,
-  refreshToken: 'refresh_token_hash',
-  role: UserRole.USER,
-};

@@ -29,6 +29,20 @@ export class UsersController {
     return this.usersService.findAll();
   }
 
+  @Get('me')
+  @UseGuards(JwtAccessGuard)
+  getMe(@Req() req: TAuthResponse) {
+    return this.usersService.getCurrentUser(req.user.sub);
+  }
+
+  @Patch('me')
+  @UseGuards(JwtAccessGuard)
+  updateMe(
+    @Req() req: TAuthResponse, 
+    @Body() updateMeDto: UpdateUserDto) {
+    return this.usersService.updateCurrentUser(req.user.sub, updateMeDto);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.usersService.findOne(+id);
@@ -36,29 +50,11 @@ export class UsersController {
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(+id, updateUserDto);
+    return this.usersService.update(id, updateUserDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.usersService.remove(+id);
-  }
-
-  @Patch('me')
-  @UseGuards(JwtAccessGuard)
-  updateMe(@Req() req: TAuthResponse, @Body() updateMeDto: UpdateUserDto) {
-    const { sub } = req.user;
-
-    // временная реализация без БД
-    return this.usersService.updateCurrentUser(Number(sub), updateMeDto);
-  }
-
-  @Get('me')
-  @UseGuards(JwtAccessGuard)
-  getMe(@Req() req: TAuthResponse) {
-    const { sub } = req.user;
-
-    // временная реализация без БД
-    return this.usersService.getCurrentUser(Number(sub));
   }
 }
