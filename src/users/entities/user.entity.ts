@@ -1,3 +1,4 @@
+import { Exclude } from 'class-transformer';
 import { IsDefined, IsEmail, IsNotEmpty, MinLength } from 'class-validator';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
@@ -29,6 +30,7 @@ export class User {
   @Column()
   @IsDefined()
   @MinLength(8)
+  @Exclude()
   password: string;
 
   @Column()
@@ -61,6 +63,7 @@ export class User {
   role: UserRole;
 
   @Column()
+  @Exclude()
   refreshToken: string;
 
   // Добавить связи с другими entity
