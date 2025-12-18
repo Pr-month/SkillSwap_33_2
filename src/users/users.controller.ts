@@ -1,28 +1,13 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
-import { UsersService } from './users.service';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { Body, Controller, Delete, Get, Param, Patch, Req, UseGuards } from '@nestjs/common';
 import { JwtAccessGuard } from 'src/auth/guards/jwt-access.guard';
 import { TAuthResponse } from 'src/auth/types';
+import { UpdatePasswordDto } from './dto/update-password.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { UsersService } from './users.service';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
-
-  @Post()
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.usersService.create(createUserDto);
-  }
 
   @Get()
   findAll() {
@@ -30,35 +15,28 @@ export class UsersController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(+id, updateUserDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(+id);
+  findUser(@Param('id') id: string) {
+    return this.usersService.findUserById(id);
   }
 
   @Patch('me')
   @UseGuards(JwtAccessGuard)
   updateMe(@Req() req: TAuthResponse, @Body() updateMeDto: UpdateUserDto) {
-    const { sub } = req.user;
-
-    // временная реализация без БД
-    return this.usersService.updateCurrentUser(Number(sub), updateMeDto);
+    return this.usersService.updateCurrentUser(req.user.sub, updateMeDto);
   }
 
   @Get('me')
   @UseGuards(JwtAccessGuard)
   getMe(@Req() req: TAuthResponse) {
-    const { sub } = req.user;
+    return this.usersService.getCurrentUser(req.user.sub);
+  }
 
-    // временная реализация без БД
-    return this.usersService.getCurrentUser(Number(sub));
+  @Patch('me/password')
+  @UseGuards(JwtAccessGuard)
+  updatePassword(
+    @Req() req: TAuthResponse,
+    @Body() updatePassword: UpdatePasswordDto,
+  ) {
+    return this.usersService.updatePassword(req.user.sub, updatePassword);
   }
 }

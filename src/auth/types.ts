@@ -9,3 +9,8 @@ export type TJwtPayload = {
 export type TAuthResponse = Request & {
   user: TJwtPayload;
 };
+
+export type Tokens = {
+  accessToken: string;
+  refreshToken: string;
+};
