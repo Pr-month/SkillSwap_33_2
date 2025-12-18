@@ -1,10 +1,3 @@
-import { ConflictException, Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { User } from './entities/user.entity';
-import { Repository } from 'typeorm';
-import { RegisterDto } from '../auth/dto/register-user.dto';
-import * as bcrypt from 'bcrypt';
-import { UpdateUserDto } from 'src/users/dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -58,4 +51,44 @@ export class UsersService {
   findAll() {
     throw new Error('Method not implemented.');
   }
+
+  async updateCurrentUser(id: number, updateData: UpdateUserDto) {
+    if (id !== MOCK_USER.id) {
+      throw new NotFoundException('User not found');
+    }
+
+    Object.assign(MOCK_USER, updateData);
+
+    // Не возвращаем пароль и refreshToken
+    // Возвращаем фиктивного пользователя
+    // @todo: заменить на реальные данные из сущности User
+    const { password, refreshToken, ...safeUser } = MOCK_USER;
+    return safeUser;
+  }
+  // @todo: заменить на обновление через репозиторий после создания UserEntity
+  async getCurrentUser(id: number) {
+    // @todo: заменить на запрос к БД после появления UserEntity и репозитория
+    if (id !== MOCK_USER.id) {
+      throw new NotFoundException('User not found');
+    }
+    // Не возвращаем пароль и refreshToken
+    // Возвращаем фиктивного пользователя
+    // @todo: заменить на реальные данные из сущности User
+    const { password, refreshToken, ...safeUser } = MOCK_USER;
+    return safeUser;
+  }
 }
+
+const MOCK_USER = {
+  id: 1,
+  name: 'Test User',
+  email: 'test@mail.com',
+  password: 'password',
+  about: 'Test profile',
+  birthdate: null,
+  city: 'Moscow',
+  gender: GenderOption.MALE,
+  avatar: null,
+  refreshToken: 'refresh_token_hash',
+  role: UserRole.USER,
+};

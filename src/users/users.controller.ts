@@ -1,6 +1,7 @@
-import { Controller, Get, Body, Patch, Param, Delete } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { JwtAccessGuard } from 'src/auth/guards/jwt-access.guard';
+import { TAuthResponse } from 'src/auth/types';
 
 @Controller('users')
 export class UsersController {
@@ -24,5 +25,23 @@ export class UsersController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.usersService.remove(+id);
+  }
+
+  @Patch('me')
+  @UseGuards(JwtAccessGuard)
+  updateMe(@Req() req: TAuthResponse, @Body() updateMeDto: UpdateUserDto) {
+    const { sub } = req.user;
+
+    // временная реализация без БД
+    return this.usersService.updateCurrentUser(Number(sub), updateMeDto);
+  }
+
+  @Get('me')
+  @UseGuards(JwtAccessGuard)
+  getMe(@Req() req: TAuthResponse) {
+    const { sub } = req.user;
+
+    // временная реализация без БД
+    return this.usersService.getCurrentUser(Number(sub));
   }
 }

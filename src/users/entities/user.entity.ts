@@ -1,3 +1,4 @@
+
 import { Exclude } from 'class-transformer';
 import { IsDefined, IsEmail, IsNotEmpty, MinLength } from 'class-validator';
 import { RefreshToken } from './refreshToken.entity';
@@ -10,6 +11,7 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+
 
 @Entity()
 export class User {
@@ -29,6 +31,7 @@ export class User {
   @Column()
   @IsDefined()
   @MinLength(8)
+
   @Exclude()
   password: string;
 
@@ -72,6 +75,7 @@ export class User {
     cascade: true, // автоматически сохраняет/обновляет/удаляет связанные сущности
   })
   refreshTokens: RefreshToken[];
+
 
   // Добавить связи с другими entity
   // @Column()
