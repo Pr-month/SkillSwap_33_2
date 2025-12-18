@@ -51,7 +51,7 @@ export class User {
   })
   @IsDefined()
   @IsNotEmpty()
-  gender: string;
+  gender: GenderOption;
 
   @Column({ nullable: true }) // пока нет фронта, может быть null
   avatar: string;
