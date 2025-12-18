@@ -1,6 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Patch, Req, UseGuards } from '@nestjs/common';
 import { JwtAccessGuard } from 'src/auth/guards/jwt-access.guard';
 import { TAuthResponse } from 'src/auth/types';
+import { UpdatePasswordDto } from './dto/update-password.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersService } from './users.service';
 
@@ -18,11 +19,6 @@ export class UsersController {
     return this.usersService.findUserById(id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(+id, updateUserDto);
-  }
-
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.usersService.remove(+id);
@@ -31,18 +27,21 @@ export class UsersController {
   @Patch('me')
   @UseGuards(JwtAccessGuard)
   updateMe(@Req() req: TAuthResponse, @Body() updateMeDto: UpdateUserDto) {
-    const { sub } = req.user;
-
-    // временная реализация без БД
-    return this.usersService.updateCurrentUser(Number(sub), updateMeDto);
+    return this.usersService.updateCurrentUser(req.user.sub, updateMeDto);
   }
 
   @Get('me')
   @UseGuards(JwtAccessGuard)
   getMe(@Req() req: TAuthResponse) {
-    const { sub } = req.user;
+    return this.usersService.getCurrentUser(req.user.sub);
+  }
 
-    // временная реализация без БД
-    return this.usersService.getCurrentUser(Number(sub));
+  @Patch('me/password')
+  @UseGuards(JwtAccessGuard)
+  updatePassword(
+    @Req() req: TAuthResponse,
+    @Body() updatePassword: UpdatePasswordDto,
+  ) {
+    return this.usersService.updatePassword(req.user.sub, updatePassword);
   }
 }

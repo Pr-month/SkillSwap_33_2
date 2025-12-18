@@ -7,12 +7,16 @@ import { User } from "./entities/user.entity";
 import { GenderOption, UserRole } from "./enums";
 import * as bcrypt from 'bcrypt';
 
+
 @Injectable()
 export class UsersService {
   constructor(
+    @Inject(appConfig.KEY)
+    private appConfig: AppConfig,
     @InjectRepository(User)
-    private registerUserRepository: Repository<User>,
+    private readonly usersRepository: Repository<User>,
   ) {}
+
   async register(registerDto: RegisterDto) {
     const findUser = await this.findUserByEmail(registerDto.email);
 
@@ -49,54 +53,45 @@ export class UsersService {
     });
   }
 
-  remove(arg0: number) {
-    throw new Error('Method not implemented.');
-  }
-  update(arg0: number, updateUserDto: UpdateUserDto) {
-    throw new Error('Method not implemented.');
-  }
 
-  findAll() {
-    throw new Error('Method not implemented.');
-  }
-
-  async updateCurrentUser(id: number, updateData: UpdateUserDto) {
-    if (id !== MOCK_USER.id) {
+  async getCurrentUser(id: string) {
+    const user = await this.usersRepository.findOne({ where: { id } });
+    if (!user) {
       throw new NotFoundException('User not found');
     }
 
-    Object.assign(MOCK_USER, updateData);
-
-    // Не возвращаем пароль и refreshToken
-    // Возвращаем фиктивного пользователя
-    // @todo: заменить на реальные данные из сущности User
-    const { password, refreshToken, ...safeUser } = MOCK_USER;
-    return safeUser;
+    return user;
   }
-  // @todo: заменить на обновление через репозиторий после создания UserEntity
-  async getCurrentUser(id: number) {
-    // @todo: заменить на запрос к БД после появления UserEntity и репозитория
-    if (id !== MOCK_USER.id) {
+
+  async updateCurrentUser(id: string, updateData: UpdateUserDto) {
+    const user = await this.usersRepository.findOne({ where: { id } });
+    if (!user) {
       throw new NotFoundException('User not found');
     }
-    // Не возвращаем пароль и refreshToken
-    // Возвращаем фиктивного пользователя
-    // @todo: заменить на реальные данные из сущности User
-    const { password, refreshToken, ...safeUser } = MOCK_USER;
-    return safeUser;
+
+    return this.usersRepository.save({ ...user, ...updateData });
+  }
+
+  async updatePassword(id: string, updatePassword: UpdatePasswordDto) {
+    const user = await this.usersRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const hashedOldPassword = await bcrypt.hash(
+      updatePassword.password,
+      this.appConfig.hashSalt,
+    );
+
+    if (user.password !== hashedOldPassword) {
+      throw new BadRequestException('Verification failed');
+    }
+
+    const hashedPassword = await bcrypt.hash(
+      updatePassword.newPassword,
+      this.appConfig.hashSalt,
+    );
+
+    return this.usersRepository.save({ ...user, password: hashedPassword });
   }
 }
-
-const MOCK_USER = {
-  id: 1,
-  name: 'Test User',
-  email: 'test@mail.com',
-  password: 'password',
-  about: 'Test profile',
-  birthdate: null,
-  city: 'Moscow',
-  gender: GenderOption.MALE,
-  avatar: null,
-  refreshToken: 'refresh_token_hash',
-  role: UserRole.USER,
-};
