@@ -61,7 +61,6 @@ export class UsersService {
     });
   }
 
-
   async getCurrentUser(id: string) {
     const user = await this.usersRepository.findOne({ where: { id } });
     if (!user) {
@@ -71,13 +70,18 @@ export class UsersService {
     return user;
   }
 
-  async updateCurrentUser(id: string, updateData: UpdateUserDto) {
+  async updateCurrentUser(
+    id: string,
+    updateData: UpdateUserDto,
+  ): Promise<User> {
     const user = await this.usersRepository.findOne({ where: { id } });
     if (!user) {
-      throw new NotFoundException('User not found');
-    }
+      throw new NotFoundException('User not found')
+    };
 
-    return this.usersRepository.save({ ...user, ...updateData });
+    Object.assign(user, updateData);
+
+    return this.usersRepository.save(user); 
   }
 
   async updatePassword(id: string, updatePassword: UpdatePasswordDto) {

@@ -14,6 +14,20 @@ export class UsersController {
     return this.usersService.findAll();
   }
 
+  @Get('me')
+  @UseGuards(JwtAccessGuard)
+  getMe(@Req() req: TAuthResponse) {
+    return this.usersService.getCurrentUser(req.user.sub);
+  }
+
+  @Patch('me')
+  @UseGuards(JwtAccessGuard)
+  updateMe(
+    @Req() req: TAuthResponse, 
+    @Body() updateMeDto: UpdateUserDto) {
+    return this.usersService.updateCurrentUser(req.user.sub, updateMeDto);
+  }
+
   @Get(':id')
   findUser(@Param('id') id: string) {
     return this.usersService.findUserById(id);
