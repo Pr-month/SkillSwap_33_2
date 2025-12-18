@@ -11,12 +11,16 @@ import { GenderOption, UserRole } from './enums';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import * as bcrypt from 'bcrypt';
 import { type AppConfig, appConfig } from 'src/config/app.config';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class UsersService {
   constructor(
     @Inject(appConfig.KEY)
     private appConfig: AppConfig,
+    @InjectRepository(User)
+    private readonly usersRepository: Repository<User>,
   ) {}
 
   create(createUserDto: CreateUserDto) {
@@ -31,90 +35,48 @@ export class UsersService {
     return `This action returns a #${id} user`;
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
-  }
-
   remove(id: number) {
     return `This action removes a #${id} user`;
   }
 
-  async updateCurrentUser(id: number, updateData: UpdateUserDto) {
-    if (id !== MOCK_USER.id) {
+  async getCurrentUser(id: string) {
+    const user = await this.usersRepository.findOne({ where: { id } });
+    if (!user) {
       throw new NotFoundException('User not found');
     }
 
-    Object.assign(MOCK_USER, updateData);
-
-    // Не возвращаем пароль и refreshToken
-    // Возвращаем фиктивного пользователя
-    // @todo: заменить на реальные данные из сущности User
-    const { password, refreshToken, ...safeUser } = MOCK_USER;
-    return safeUser;
-  }
-  // @todo: заменить на обновление через репозиторий после создания UserEntity
-  async getCurrentUser(id: number) {
-    // @todo: заменить на запрос к БД после появления UserEntity и репозитория
-    if (id !== MOCK_USER.id) {
-      throw new NotFoundException('User not found');
-    }
-    // Не возвращаем пароль и refreshToken
-    // Возвращаем фиктивного пользователя
-    // @todo: заменить на реальные данные из сущности User
-    const { password, refreshToken, ...safeUser } = MOCK_USER;
-    return safeUser;
+    return user;
   }
 
-  async updatePassword(id: number, updatePassword: UpdatePasswordDto) {
-    if (id !== MOCK_USER.id) {
+  async updateCurrentUser(id: string, updateData: UpdateUserDto) {
+    const user = await this.usersRepository.findOne({ where: { id } });
+    if (!user) {
       throw new NotFoundException('User not found');
     }
 
-    const newPassword = updatePassword.password;
-    const errors: string[] = [];
-    if (newPassword.length < 8) {
-      errors.push('Пароль должен содержать минимум 8 символов.');
+    return this.usersRepository.save({ ...user, ...updateData });
+  }
+
+  async updatePassword(id: string, updatePassword: UpdatePasswordDto) {
+    const user = await this.usersRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new NotFoundException('User not found');
     }
 
-    if (!/[A-Z]/.test(newPassword)) {
-      errors.push('Добавьте хотя бы одну заглавную букву.');
-    }
-
-    if (!/\d/.test(newPassword)) {
-      errors.push('Добавьте хотя бы одну цифру.');
-    }
-
-    if (!/[!@#$%^&*(),.?":{}|<>]/.test(newPassword)) {
-      errors.push('Добавьте хотя бы один спецсимвол.');
-    }
-
-    if (errors) {
-      throw new BadRequestException(errors.join(' '));
-    }
-
-    const hashedPassword = await bcrypt.hash(
-      newPassword,
+    const hashedOldPassword = await bcrypt.hash(
+      updatePassword.password,
       this.appConfig.hashSalt,
     );
 
-    Object.assign(MOCK_USER, { password: hashedPassword });
+    if (user.password !== hashedOldPassword) {
+      throw new BadRequestException('Verification failed');
+    }
 
-    // @todo: заменить на реальные данные из сущности User
-    const { password, refreshToken, ...safeUser } = MOCK_USER;
-    return safeUser;
+    const hashedPassword = await bcrypt.hash(
+      updatePassword.newPassword,
+      this.appConfig.hashSalt,
+    );
+
+    return this.usersRepository.save({ ...user, password: hashedPassword });
   }
 }
-
-const MOCK_USER = {
-  id: 1,
-  name: 'Test User',
-  email: 'test@mail.com',
-  password: 'password',
-  about: 'Test profile',
-  birthdate: null,
-  city: 'Moscow',
-  gender: GenderOption.MALE,
-  avatar: null,
-  refreshToken: 'refresh_token_hash',
-  role: UserRole.USER,
-};

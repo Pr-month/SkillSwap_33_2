@@ -35,11 +35,6 @@ export class UsersController {
     return this.usersService.findOne(+id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(+id, updateUserDto);
-  }
-
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.usersService.remove(+id);
@@ -48,19 +43,13 @@ export class UsersController {
   @Patch('me')
   @UseGuards(JwtAccessGuard)
   updateMe(@Req() req: TAuthResponse, @Body() updateMeDto: UpdateUserDto) {
-    const { sub } = req.user;
-
-    // временная реализация без БД
-    return this.usersService.updateCurrentUser(Number(sub), updateMeDto);
+    return this.usersService.updateCurrentUser(req.user.sub, updateMeDto);
   }
 
   @Get('me')
   @UseGuards(JwtAccessGuard)
   getMe(@Req() req: TAuthResponse) {
-    const { sub } = req.user;
-
-    // временная реализация без БД
-    return this.usersService.getCurrentUser(Number(sub));
+    return this.usersService.getCurrentUser(req.user.sub);
   }
 
   @Patch('me/password')
@@ -69,9 +58,6 @@ export class UsersController {
     @Req() req: TAuthResponse,
     @Body() updatePassword: UpdatePasswordDto,
   ) {
-    const { sub } = req.user;
-
-    // @todo: заменить на тип string
-    return this.usersService.updatePassword(Number(sub), updatePassword);
+    return this.usersService.updatePassword(req.user.sub, updatePassword);
   }
 }
