@@ -1,6 +1,6 @@
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
 import { Exclude } from 'class-transformer';
-import { User } from '../entities/user.entity';
+import { User } from './user.entity';
 
 @Entity()
 export class RefreshToken {

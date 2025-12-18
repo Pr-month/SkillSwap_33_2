@@ -1,21 +1,20 @@
 import {
-  IsArray,
-  IsDate,
   IsDateString,
+  IsDefined,
   IsEmail,
   IsEnum,
   IsISO8601,
+  IsNotEmpty,
   IsString,
   Matches,
   MinLength,
 } from 'class-validator';
-import { ParentSkill } from '../../types/skill.type';
 import { GenderOption } from '../../users/enums';
-import { Type } from 'class-transformer';
 
 export class RegisterDto {
   @IsEmail()
-  email: string;
+  @IsDefined()
+  email: string; //
 
   @IsString()
   @MinLength(8)
@@ -23,37 +22,25 @@ export class RegisterDto {
     message:
       'Пароль должен быть на латинице, а так же содержать как минимум одну заглавную букву, одну строчную букву и одну цифру',
   })
-  password: string;
-
-  @IsEnum(ParentSkill, { each: true })
-  @IsArray()
-  skill: ParentSkill[];
-
-  @IsString({ each: true })
-  @IsArray()
-  subSkill: string[];
-
-  @IsEnum(ParentSkill, { each: true })
-  @IsArray()
-  skillToTeach: ParentSkill[];
-
-  @IsString({ each: true })
-  @IsArray()
-  subSkillToTeach: string[];
+  password: string; //
 
   @IsString()
-  username: string;
+  @IsDefined()
+  @MinLength(2)
+  name: string; //
 
   @IsDateString()
   @IsISO8601()
-  birthday: string;
+  @IsNotEmpty()
+  birthdate: string; //
 
   @IsEnum(GenderOption)
-  gender: GenderOption;
+  @IsNotEmpty()
+  gender: GenderOption; //
 
   @IsString()
-  city: string;
+  city: string; //
 
   @IsString()
-  descriptionSkillToTeach: string;
+  about: string; //
 }
