@@ -7,7 +7,7 @@ import { UsersService } from './users.service';
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService) { }
 
   @Get()
   findAll() {
@@ -23,26 +23,9 @@ export class UsersController {
   @Patch('me')
   @UseGuards(JwtAccessGuard)
   updateMe(
-    @Req() req: TAuthResponse, 
+    @Req() req: TAuthResponse,
     @Body() updateMeDto: UpdateUserDto) {
     return this.usersService.updateCurrentUser(req.user.sub, updateMeDto);
-  }
-
-  @Get(':id')
-  findUser(@Param('id') id: string) {
-    return this.usersService.findUserById(id);
-  }
-
-  @Patch('me')
-  @UseGuards(JwtAccessGuard)
-  updateMe(@Req() req: TAuthResponse, @Body() updateMeDto: UpdateUserDto) {
-    return this.usersService.updateCurrentUser(req.user.sub, updateMeDto);
-  }
-
-  @Get('me')
-  @UseGuards(JwtAccessGuard)
-  getMe(@Req() req: TAuthResponse) {
-    return this.usersService.getCurrentUser(req.user.sub);
   }
 
   @Patch('me/password')
@@ -52,5 +35,10 @@ export class UsersController {
     @Body() updatePassword: UpdatePasswordDto,
   ) {
     return this.usersService.updatePassword(req.user.sub, updatePassword);
+  }
+
+  @Get(':id')
+  findUser(@Param('id') id: string) {
+    return this.usersService.findUserById(id);
   }
 }
