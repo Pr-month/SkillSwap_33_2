@@ -19,11 +19,6 @@ export class UsersController {
     return this.usersService.findUserById(id);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(+id);
-  }
-
   @Patch('me')
   @UseGuards(JwtAccessGuard)
   updateMe(@Req() req: TAuthResponse, @Body() updateMeDto: UpdateUserDto) {

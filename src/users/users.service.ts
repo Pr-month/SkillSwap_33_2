@@ -1,4 +1,4 @@
-import { Injectable, ConflictException, NotFoundException } from "@nestjs/common";
+import { Injectable, ConflictException, NotFoundException, BadRequestException, Inject } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { RegisterDto } from "src/auth/dto/register-user.dto";
 import { Repository } from "typeorm";
@@ -6,6 +6,8 @@ import { UpdateUserDto } from "./dto/update-user.dto";
 import { User } from "./entities/user.entity";
 import { GenderOption, UserRole } from "./enums";
 import * as bcrypt from 'bcrypt';
+import { appConfig, AppConfig } from "src/config/app.config";
+import { UpdatePasswordDto } from "./dto/update-password.dto";
 
 
 @Injectable()
@@ -15,7 +17,13 @@ export class UsersService {
     private appConfig: AppConfig,
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
-  ) {}
+  ) { }
+
+
+  async findAll(): Promise<User[]> {
+    const users = await this.usersRepository.find();
+    return users;
+  }
 
   async register(registerDto: RegisterDto) {
     const findUser = await this.findUserByEmail(registerDto.email);
@@ -34,21 +42,21 @@ export class UsersService {
   }
 
   private async createUser(registerDto: RegisterDto, hashedPassword: string) {
-    const user = this.registerUserRepository.create({
+    const user = this.usersRepository.create({
       ...registerDto,
       password: hashedPassword,
     });
-    return await this.registerUserRepository.save(user);
+    return await this.usersRepository.save(user);
   }
 
   async findUserByEmail(email: string): Promise<User | null> {
-    return await this.registerUserRepository.findOne({
+    return await this.usersRepository.findOne({
       where: { email: email.toLowerCase() },
     });
   }
 
   async findUserById(id: string) {
-    return await this.registerUserRepository.findOneOrFail({
+    return await this.usersRepository.findOneOrFail({
       where: { id },
     });
   }
