@@ -1,28 +1,55 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { GenderOption, UserRole } from './enums';
 
 @Injectable()
 export class UsersService {
-  create(createUserDto: CreateUserDto) {
-    return 'This action adds a new user';
+  constructor(
+    @InjectRepository(User)
+    private registerUserRepository: Repository<User>,
+  ) {}
+  async register(registerDto: RegisterDto) {
+    const findUser = await this.findUserByEmail(registerDto.email);
+
+    if (findUser) {
+      throw new ConflictException(
+        `Пользователь с ${registerDto.email} уже существует!`,
+      );
+    }
+
+    const hashedPassword = await bcrypt.hash(registerDto.password, 10);
+
+    const user = await this.createUser(registerDto, hashedPassword);
+
+    return user;
+  }
+
+  private async createUser(registerDto: RegisterDto, hashedPassword: string) {
+    const user = this.registerUserRepository.create({
+      ...registerDto,
+      password: hashedPassword,
+    });
+    return await this.registerUserRepository.save(user);
+  }
+
+  async findUserByEmail(email: string): Promise<User | null> {
+    return await this.registerUserRepository.findOne({
+      where: { email: email.toLowerCase() },
+    });
+  }
+
+  async findUserById(id: string) {
+    return await this.registerUserRepository.findOne({
+      where: { id },
+    });
+  }
+
+  remove(arg0: number) {
+    throw new Error('Method not implemented.');
+  }
+  update(arg0: number, updateUserDto: UpdateUserDto) {
+    throw new Error('Method not implemented.');
   }
 
   findAll() {
-    return `This action returns all users`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
-  }
-
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+    throw new Error('Method not implemented.');
   }
 
   async updateCurrentUser(id: number, updateData: UpdateUserDto) {

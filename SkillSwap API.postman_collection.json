@@ -1,0 +1,48 @@
+{
+	"info": {
+		"_postman_id": "91ac0187-b4a9-4d15-873c-3770b38baf89",
+		"name": "SkillSwap API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "43745571",
+		"_collection_link": "https://maxim-6652793.postman.co/workspace/Maxim's-Workspace~0be60c1f-1f12-4227-831e-f5e27df6aa4c/collection/43745571-91ac0187-b4a9-4d15-873c-3770b38baf89?action=share&source=collection_link&creator=43745571"
+	},
+	"item": [
+		{
+			"name": "Registr",
+			"item": [
+				{
+					"name": "http://localhost:3000/auth/register",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"email\": \"user@example.com\",\r\n  \"password\": \"Password123\",\r\n  \"skill\": [\"Бизнес и карьера\", \"Творчество и искусство\"],\r\n  \"subSkill\": [\"Маркетинг\", \"Рисование\"],\r\n  \"skillToTeach\": [\"Иностранные языки\"],\r\n  \"subSkillToTeach\": [\"Английский язык\"],\r\n  \"username\": \"john_doe\",\r\n  \"birthday\": \"1990-01-01\",\r\n  \"gender\": \"male\",\r\n  \"city\": \"Москва\",\r\n  \"descriptionSkillToTeach\": \"Обучаю английскому языку с нуля\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/auth/register",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

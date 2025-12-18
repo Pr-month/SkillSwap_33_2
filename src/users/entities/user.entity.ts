@@ -1,15 +1,17 @@
+
+import { Exclude } from 'class-transformer';
 import { IsDefined, IsEmail, IsNotEmpty, MinLength } from 'class-validator';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { RefreshToken } from './refreshToken.entity';
+import { GenderOption, UserRole } from '../enums';
+import {
+  BeforeInsert,
+  BeforeUpdate,
+  Column,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
-enum UserRole {
-  user = 'USER',
-  admin = 'ADMIN',
-}
-
-enum UserGender {
-  male = 'мужской',
-  female = 'женский',
-}
 
 @Entity()
 export class User {
@@ -29,6 +31,8 @@ export class User {
   @Column()
   @IsDefined()
   @MinLength(8)
+
+  @Exclude()
   password: string;
 
   @Column()
@@ -44,24 +48,34 @@ export class User {
 
   @Column({
     type: 'enum',
-    enum: UserGender,
+    enum: GenderOption,
+    default: GenderOption.MALE,
   })
   @IsDefined()
   @IsNotEmpty()
   gender: string;
 
-  @Column()
+  @Column({ nullable: true }) // пока нет фронта, может быть null
   avatar: string;
 
   @Column({
     type: 'enum',
     enum: UserRole,
-    default: UserRole.user,
+    default: UserRole.USER,
   })
   role: UserRole;
 
-  @Column()
-  refreshToken: string;
+  @BeforeInsert()
+  @BeforeUpdate()
+  emailToLowerCase() {
+    this.email = this.email.toLowerCase();
+  }
+
+  @OneToMany(() => RefreshToken, (token) => token.user, {
+    cascade: true, // автоматически сохраняет/обновляет/удаляет связанные сущности
+  })
+  refreshTokens: RefreshToken[];
+
 
   // Добавить связи с другими entity
   // @Column()
