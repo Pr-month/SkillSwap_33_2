@@ -60,17 +60,17 @@ export class User {
     enum: UserRole,
     default: UserRole.user,
   })
-  role: string;
+  role: UserRole;
 
   @Column()
   @Exclude()
   refreshToken: string;
 
   // Добавить связи с другими entity
-  @Column()
-  skills: string;
-  @Column()
-  wantToLearn: string;
-  @Column()
-  favoriteSkills: string;
+  // @Column()
+  // skills: string;
+  // @Column()
+  // wantToLearn: string;
+  // @Column()
+  // favoriteSkills: string;
 }

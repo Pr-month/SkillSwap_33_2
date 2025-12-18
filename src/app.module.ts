@@ -9,6 +9,7 @@ import { JwtConfig, jwtConfig } from './config/jwt.config';
 import { JwtModule, JwtSignOptions } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DatabaseConfig, dbConfig } from './config/db.config';
+import { CategoriesModule } from './categories/categories.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { DatabaseConfig, dbConfig } from './config/db.config';
       inject: [dbConfig.KEY],
       useFactory: (config: DatabaseConfig) => config,
     }),
+    CategoriesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
