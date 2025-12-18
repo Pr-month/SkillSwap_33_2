@@ -1,17 +1,12 @@
-import {
-  BadRequestException,
-  Inject,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { GenderOption, UserRole } from './enums';
-import { UpdatePasswordDto } from './dto/update-password.dto';
+import { Injectable, ConflictException, NotFoundException } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { RegisterDto } from "src/auth/dto/register-user.dto";
+import { Repository } from "typeorm";
+import { UpdateUserDto } from "./dto/update-user.dto";
+import { User } from "./entities/user.entity";
+import { GenderOption, UserRole } from "./enums";
 import * as bcrypt from 'bcrypt';
-import { type AppConfig, appConfig } from 'src/config/app.config';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+
 
 @Injectable()
 export class UsersService {
@@ -22,21 +17,42 @@ export class UsersService {
     private readonly usersRepository: Repository<User>,
   ) {}
 
-  create(createUserDto: CreateUserDto) {
-    return 'This action adds a new user';
+  async register(registerDto: RegisterDto) {
+    const findUser = await this.findUserByEmail(registerDto.email);
+
+    if (findUser) {
+      throw new ConflictException(
+        `Пользователь с ${registerDto.email} уже существует!`,
+      );
+    }
+
+    const hashedPassword = await bcrypt.hash(registerDto.password, 10);
+
+    const user = await this.createUser(registerDto, hashedPassword);
+
+    return user;
   }
 
-  findAll() {
-    return `This action returns all users`;
+  private async createUser(registerDto: RegisterDto, hashedPassword: string) {
+    const user = this.registerUserRepository.create({
+      ...registerDto,
+      password: hashedPassword,
+    });
+    return await this.registerUserRepository.save(user);
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  async findUserByEmail(email: string): Promise<User | null> {
+    return await this.registerUserRepository.findOne({
+      where: { email: email.toLowerCase() },
+    });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async findUserById(id: string) {
+    return await this.registerUserRepository.findOneOrFail({
+      where: { id },
+    });
   }
+
 
   async getCurrentUser(id: string) {
     const user = await this.usersRepository.findOne({ where: { id } });

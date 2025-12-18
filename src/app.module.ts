@@ -32,7 +32,9 @@ import { CategoriesModule } from './categories/categories.module';
     }),
     TypeOrmModule.forRootAsync({
       inject: [dbConfig.KEY],
-      useFactory: (config: DatabaseConfig) => config,
+      useFactory: (config: DatabaseConfig): DatabaseConfig => {
+        return config;
+      },
     }),
     CategoriesModule,
   ],
