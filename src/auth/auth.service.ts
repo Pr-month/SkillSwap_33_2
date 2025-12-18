@@ -12,11 +12,6 @@ import { UserRole } from 'src/users/enums';
 import { LoginDto } from './dto/login.dto';
 import { TJwtPayload, Tokens } from './types';
 
-interface LoginResponse {
-  access_token: string,
-  refresh_token: string,
-}
-
 @Injectable()
 export class AuthService {
   constructor(
@@ -28,19 +23,20 @@ export class AuthService {
   ) { }
 
   async register(registerDto: RegisterDto) {
-    const { email, id: sub } = await this.usersService.register(registerDto);
-    const payload: TJwtPayload = {
-      sub,
-      email,
-      role: UserRole.USER
-    };
+    const user = await this.usersService.register(registerDto);
 
-    const tokens = await this._generateTokens(payload);
+    const tokens = await this._generateTokens(user);
 
     return { ...tokens };
   }
 
-  private async _generateTokens(payload: TJwtPayload): Promise<Tokens> {
+  private async _generateTokens(user: User): Promise<Tokens> {
+    const payload: TJwtPayload = {
+      sub: user.id,
+      email: user.email,
+      role: UserRole.USER
+    };
+
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(payload, {
         secret: process.env.JWT_ACCESS_TOKEN || 'access_secret',
@@ -52,6 +48,13 @@ export class AuthService {
       }),
     ]);
 
+    const tokenEntity = this.refreshTokensRepository.create({
+      refreshToken,
+      user,
+    });
+
+    await this.refreshTokensRepository.save(tokenEntity);
+
     return {
       accessToken,
       refreshToken,
@@ -60,18 +63,13 @@ export class AuthService {
 
   async login(loginDto: LoginDto): Promise<Tokens> {
     const user = { id: '1', email: loginDto.email, role: UserRole.USER };
-
-    const payload: TJwtPayload = {
-      sub: user.id,
-      email: user.email,
-      role: user.role,
-    };
-
-    return this._generateTokens(payload);
+    //Добавить проверку пароля
+    return this._generateTokens(user as User);
   }
 
   async refresh(payload: TJwtPayload): Promise<Tokens> {
-    return this._generateTokens(payload);
+    const user = await this.usersService.findUserById(payload.sub);
+    return this._generateTokens(user);
   }
 
   logout(): void {

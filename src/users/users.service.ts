@@ -44,7 +44,7 @@ export class UsersService {
   }
 
   async findUserById(id: string) {
-    return await this.registerUserRepository.findOne({
+    return await this.registerUserRepository.findOneOrFail({
       where: { id },
     });
   }
