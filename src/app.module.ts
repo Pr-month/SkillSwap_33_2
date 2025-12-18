@@ -10,6 +10,7 @@ import { JwtModule, JwtSignOptions } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DatabaseConfig, dbConfig } from './config/db.config';
 import { CategoriesModule } from './categories/categories.module';
+import { FilesModule } from './files/files.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { CategoriesModule } from './categories/categories.module';
       },
     }),
     CategoriesModule,
+    FilesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
