@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateSkillDto } from './dto/create-skill.dto';
 import { UpdateSkillDto } from './dto/update-skill.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -38,10 +42,20 @@ export class SkillsService {
     });
   }
 
-  async update(id: string, updateSkill: UpdateSkillDto) {
-    const skill = await this.skillsRepository.findOne({ where: { id } });
+  async update(userId: string, skillId: string, updateSkill: UpdateSkillDto) {
+    const skill = await this.skillsRepository.findOne({
+      relations: {
+        owner: true,
+      },
+      where: {
+        id: skillId,
+      },
+    });
     if (!skill) {
       throw new NotFoundException('Skill not found');
+    }
+    if (skill.owner.id !== userId) {
+      throw new ForbiddenException('Forbidden');
     }
     return this.skillsRepository.save({ ...skill, ...updateSkill });
   }

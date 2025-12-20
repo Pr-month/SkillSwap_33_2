@@ -9,7 +9,6 @@ import {
   Entity,
   ManyToMany,
   OneToMany,
-  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Skill } from 'src/skills/entities/skill.entity';
