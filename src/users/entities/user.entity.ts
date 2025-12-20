@@ -7,10 +7,13 @@ import {
   BeforeUpdate,
   Column,
   Entity,
+  ManyToMany,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-
+import { Skill } from 'src/skills/entities/skill.entity';
+import { Category } from 'src/categories/entities/category.entity';
 
 @Entity()
 export class User {
@@ -74,11 +77,15 @@ export class User {
   })
   refreshTokens: RefreshToken[];
 
-  // Добавить связи с другими entity
-  // @Column()
-  // skills: string;
-  // @Column()
-  // wantToLearn: string;
-  // @Column()
-  // favoriteSkills: string;
+  @Column()
+  @OneToMany(() => Skill, (skill) => skill.owner, { cascade: true })
+  skills: Skill[];
+
+  @Column()
+  @ManyToMany(() => Category, (category) => category.usersWantedToLearn)
+  wantToLearn: Category[];
+
+  @Column()
+  @ManyToMany(() => Skill, (skill) => skill.interestedUser)
+  favoriteSkills: Skill[];
 }
