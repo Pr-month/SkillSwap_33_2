@@ -7,14 +7,18 @@ import {
   Param,
   Delete,
   UseGuards,
+  Query,
+  ParseBoolPipe,
+  ParseIntPipe,
+  DefaultValuePipe,
 } from '@nestjs/common';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
-import { JwtAccessGuard } from '../auth/guards/jwt-access.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
-import { UserRole } from '../users/enums';
+import { JwtAccessGuard } from 'src/auth/guards/jwt-access.guard';
+import { UserRole } from 'src/users/enums';
 
 @Controller('categories')
 export class CategoriesController {
@@ -28,8 +32,21 @@ export class CategoriesController {
   }
 
   @Get()
-  findAll() {
-    return this.categoriesService.findAll();
+  findAll(
+    @Query('includeAll', new DefaultValuePipe(false), ParseBoolPipe)
+    includeAll?: boolean,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe)
+    page?: number,
+    @Query('limit', new DefaultValuePipe(20), ParseIntPipe)
+    limit?: number,
+    @Query('search') search?: string,
+  ) {
+    return this.categoriesService.findAll({
+      includeAll,
+      page,
+      limit,
+      search,
+    });
   }
 
   @Get(':id')

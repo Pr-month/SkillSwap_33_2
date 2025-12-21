@@ -7,18 +7,7 @@ import {
 import { Reflector } from '@nestjs/core';
 import { ROLES_KEY } from '../decorators/roles.decorator';
 import { UserRole } from '../../users/enums';
-
-// Интерфейс для пользователя (соответствует существующей JWT стратегии)
-interface JwtUser {
-  userId: string;
-  email: string;
-  roles: string[];
-}
-
-// Интерфейс для Request
-interface RequestWithUser {
-  user?: JwtUser;
-}
+import { AuthenticatedRequest } from '../types'; // ИСПОЛЬЗУЕМ ТИП ИЗ auth/types.ts
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -34,8 +23,8 @@ export class RolesGuard implements CanActivate {
       return true;
     }
 
-    // Используем дженерик для типизации getRequest
-    const request = context.switchToHttp().getRequest<RequestWithUser>();
+    // Используем AuthenticatedRequest из auth/types.ts
+    const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
 
     if (!request.user) {
       throw new ForbiddenException('Пользователь не найден');
