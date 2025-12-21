@@ -16,18 +16,16 @@ export class Category {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column()
-  @IsDefined()
-  @IsNotEmpty()
-  @Length(2, 100)
+  @Column({ unique: true })
   name: string;
 
   @ManyToOne(() => Category, (category) => category.children, {
     nullable: true,
+    onDelete: 'CASCADE', // при удалении родителя удаляются дети
   })
   parent: Category | null;
-
-  @OneToMany(() => Category, (category) => category.parent, { cascade: true })
+  
+  @OneToMany(() => Category, (category) => category.parent)
   children: Category[];
 
   @OneToMany(() => Skill, (skill) => skill.category, { cascade: true })
