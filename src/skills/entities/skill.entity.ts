@@ -26,13 +26,13 @@ export class Skill {
   @Exclude()
   updatedAt: Date;
 
-  @Column()
+  @Column('text')
   @IsDefined()
   @IsNotEmpty()
   @Length(2, 100)
   title: string;
 
-  @Column()
+  @Column('text')
   @IsDefined()
   @IsNotEmpty()
   @Length(2, 500)
@@ -41,6 +41,7 @@ export class Skill {
   @ManyToOne(() => Category, (category) => category.children)
   category: Category;
 
+  @Column('text', { array: true, default: [] })
   images: string[];
 
   @ManyToOne(() => User, (user) => user.skills)

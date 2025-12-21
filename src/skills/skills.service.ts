@@ -35,6 +35,12 @@ export class SkillsService {
 
   async findSkills(paginationOptions: PaginationOptionsDto) {
     const { limit = 20, page = 1, order = OrderBy.DESC } = paginationOptions;
+
+    const totalSkills = await this.skillsRepository.count();
+    const totalPages = Math.ceil(totalSkills / limit);
+    if (page > totalPages) {
+      throw new NotFoundException('Page not found');
+    }
     return this.skillsRepository.find({
       skip: (page - 1) * limit,
       take: limit,

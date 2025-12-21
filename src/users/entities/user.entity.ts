@@ -76,15 +76,12 @@ export class User {
   })
   refreshTokens: RefreshToken[];
 
-  @Column()
   @OneToMany(() => Skill, (skill) => skill.owner, { cascade: true })
   skills: Skill[];
 
-  @Column()
   @ManyToMany(() => Category, (category) => category.usersWantedToLearn)
   wantToLearn: Category[];
 
-  @Column()
   @ManyToMany(() => Skill, (skill) => skill.interestedUser)
   favoriteSkills: Skill[];
 }
