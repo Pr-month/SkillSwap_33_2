@@ -9,7 +9,6 @@ import {
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { Category } from '../../categories/entities/category.entity';
-import { SkillType } from '../enums';
 
 @Entity('skills')
 export class Skill {
@@ -21,13 +20,6 @@ export class Skill {
 
   @Column('text')
   description: string;
-
-  @Column({
-    type: 'enum',
-    enum: SkillType,
-    default: SkillType.TEACH,
-  })
-  type: SkillType;
 
   @Column('simple-array', { nullable: true })
   images: string[];

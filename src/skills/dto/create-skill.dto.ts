@@ -1,7 +1,6 @@
 import {
   IsString,
   IsNotEmpty,
-  IsEnum,
   IsArray,
   ArrayMinSize,
   MaxLength,
@@ -9,7 +8,6 @@ import {
   IsUUID,
   IsOptional,
 } from 'class-validator';
-import { SkillType } from '../enums';
 
 export class CreateSkillDto {
   @IsString()
@@ -23,11 +21,6 @@ export class CreateSkillDto {
   @MinLength(10, { message: 'Описание должно быть не менее 10 символов' })
   @MaxLength(1000, { message: 'Описание должно быть не более 1000 символов' })
   description: string;
-
-  @IsEnum(SkillType, {
-    message: 'Тип навыка должен быть "Учу" или "Учусь"',
-  })
-  type: SkillType;
 
   @IsArray({ message: 'Изображения должны быть массивом' })
   @ArrayMinSize(1, { message: 'Должно быть хотя бы одно изображение' })

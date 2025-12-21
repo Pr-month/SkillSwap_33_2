@@ -13,23 +13,21 @@ import { SkillsService } from './skills.service';
 import { CreateSkillDto } from './dto/create-skill.dto';
 import { UpdateSkillDto } from './dto/update-skill.dto';
 import { JwtAccessGuard } from '../auth/guards/jwt-access.guard';
+import { TJwtPayload } from '../auth/types';
 import { Request } from 'express';
 
 interface RequestWithUser extends Request {
-  user: {
-    id: string;
-    email: string;
-    // другие поля пользователя
-  };
+  user: TJwtPayload;
 }
 @Controller('skills')
 export class SkillsController {
   constructor(private readonly skillsService: SkillsService) {}
 
   @Post()
-  @UseGuards(JwtAccessGuard) // ← РАСКОММЕНТИРОВАТЬ
+  @UseGuards(JwtAccessGuard)
   create(@Body() createSkillDto: CreateSkillDto, @Req() req: RequestWithUser) {
-    const ownerId = req.user.id;
+    const ownerId = req.user.sub;
+
     return this.skillsService.create(createSkillDto, ownerId);
   }
 

@@ -20,7 +20,7 @@ export class AuthService {
     private readonly configService: ConfigService,
     @InjectRepository(RefreshToken)
     private refreshTokensRepository: Repository<RefreshToken>,
-  ) { }
+  ) {}
 
   async register(registerDto: RegisterDto) {
     const user = await this.usersService.register(registerDto);
@@ -34,7 +34,7 @@ export class AuthService {
     const payload: TJwtPayload = {
       sub: user.id,
       email: user.email,
-      role: UserRole.USER
+      role: UserRole.USER,
     };
 
     const [accessToken, refreshToken] = await Promise.all([
