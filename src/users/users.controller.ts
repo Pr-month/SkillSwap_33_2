@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Req, UseGuards, Query } from '@nestjs/common';
 import { JwtAccessGuard } from 'src/auth/guards/jwt-access.guard';
 import { TAuthResponse } from 'src/auth/types';
 import { UpdatePasswordDto } from './dto/update-password.dto';
@@ -10,8 +10,24 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) { }
 
   @Get()
-  findAll() {
-    return this.usersService.findAll();
+  findAll(
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '10',
+    @Query('name') name?: string,
+    @Query('email') email?: string,
+    @Query('city') city?: string,
+    @Query('role') role?: string,
+    @Query('gender') gender?: string,
+  ) {
+    return this.usersService.findAllFiltered({
+      page: Number(page),
+      limit: Number(limit),
+      name,
+      email,
+      city,
+      role,
+      gender,
+    });
   }
 
   @Get('me')

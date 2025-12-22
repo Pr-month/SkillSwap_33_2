@@ -1,10 +1,16 @@
-import { Injectable, ConflictException, NotFoundException, BadRequestException, Inject } from "@nestjs/common";
+import {
+  Injectable,
+  ConflictException,
+  NotFoundException,
+  BadRequestException,
+  Inject,
+} from '@nestjs/common';
 import { InjectRepository } from "@nestjs/typeorm";
 import { RegisterDto } from "src/auth/dto/register-user.dto";
 import { Repository } from "typeorm";
 import { UpdateUserDto } from "./dto/update-user.dto";
 import { User } from "./entities/user.entity";
-import { GenderOption, UserRole } from "./enums";
+import { GenderOption, UserRole } from "./enums"; 
 import * as bcrypt from 'bcrypt';
 import { appConfig, AppConfig } from "src/config/app.config";
 import { UpdatePasswordDto } from "./dto/update-password.dto";
@@ -76,12 +82,12 @@ export class UsersService {
   ): Promise<User> {
     const user = await this.usersRepository.findOne({ where: { id } });
     if (!user) {
-      throw new NotFoundException('User not found')
-    };
+      throw new NotFoundException('User not found');
+    }
 
     Object.assign(user, updateData);
 
-    return this.usersRepository.save(user); 
+    return this.usersRepository.save(user);
   }
 
   async updatePassword(id: string, updatePassword: UpdatePasswordDto) {
@@ -105,5 +111,63 @@ export class UsersService {
     );
 
     return this.usersRepository.save({ ...user, password: hashedPassword });
+  }
+
+  async findAllFiltered({
+    page = 1,
+    limit = 10,
+    name,
+    email,
+    city,
+    role,
+    gender,
+  }: {
+    page?: number;
+    limit?: number;
+    name?: string;
+    email?: string;
+    city?: string;
+    role?: string;
+    gender?: string;
+  }) {
+    const query = this.usersRepository.createQueryBuilder('user');
+    if (name) {
+      query.andWhere('LOWER(user.name) LIKE LOWER(:name)', {
+        name: `%${name}%`,
+      });
+    }
+    if (email) {
+      query.andWhere('LOWER(user.email) LIKE LOWER(:email)', {
+        email: `%${email}%`,
+      });
+    }
+    if (city) {
+      query.andWhere('LOWER(user.city) LIKE LOWER(:city)', {
+        city: `%${city}%`,
+      });
+    }
+    if (role) {
+      query.andWhere('user.role = :role', {
+        role,
+      });
+    }
+    if (gender) {
+      query.andWhere('user.gender = :gender', {
+        gender,
+      });
+    }
+    const [users, total] = await query
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+    return {
+      data: users,
+      meta: {
+        total,
+        page,
+        lastPage: Math.ceil(total / limit),
+        limit,
+      },
+    };
   }
 }
