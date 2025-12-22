@@ -1,4 +1,17 @@
-import { Body, Controller, Delete, Get, Param, Patch, Req, UseGuards, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Req,
+  UseGuards,
+  Query,
+  UseInterceptors,
+  ClassSerializerInterceptor,
+  NotFoundException,
+} from '@nestjs/common';
 import { JwtAccessGuard } from 'src/auth/guards/jwt-access.guard';
 import { TAuthResponse } from 'src/auth/types';
 import { UpdatePasswordDto } from './dto/update-password.dto';
@@ -6,6 +19,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersService } from './users.service';
 
 @Controller('users')
+@UseInterceptors(ClassSerializerInterceptor)
 export class UsersController {
   constructor(private readonly usersService: UsersService) { }
 
@@ -38,9 +52,7 @@ export class UsersController {
 
   @Patch('me')
   @UseGuards(JwtAccessGuard)
-  updateMe(
-    @Req() req: TAuthResponse,
-    @Body() updateMeDto: UpdateUserDto) {
+  updateMe(@Req() req: TAuthResponse, @Body() updateMeDto: UpdateUserDto) {
     return this.usersService.updateCurrentUser(req.user.sub, updateMeDto);
   }
 
@@ -54,7 +66,16 @@ export class UsersController {
   }
 
   @Get(':id')
-  findUser(@Param('id') id: string) {
-    return this.usersService.findUserById(id);
+  @UseGuards(JwtAccessGuard)
+  async findUser(@Param('id') id: string) {
+    try {
+      const user = await this.usersService.findUserById(id);
+      return user;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException('Пользователь не найден');
+      }
+      throw error;
+    }
   }
 }
