@@ -6,6 +6,8 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { Response } from 'express';
+import { PostgresError } from 'src/types/postgres-error.interface';
+import { QueryFailedError } from 'typeorm';
 import { EntityNotFoundError } from 'typeorm/error/EntityNotFoundError';
 
 @Catch()
@@ -30,16 +32,15 @@ export class AllExceptionsFilter implements ExceptionFilter {
     }
 
     // Ошибка дубликата
-    else if (
-      exception instanceof Error &&
-      (exception as any).code === '23505'
-    ) {
-      status = HttpStatus.CONFLICT;
+    else if (exception instanceof QueryFailedError) {
+      const err = exception as PostgresError;
 
-      const detail = (exception as any).detail ?? '';
-      message = detail.includes('email')
-        ? 'Email is already used'
-        : 'Duplicate entity';
+      if (err.code === '23505') {
+        status = HttpStatus.CONFLICT;
+        message = err.detail?.includes('email')
+          ? 'Email is already used'
+          : 'Duplicate entity';
+      }
     }
 
     // Любая другая ошибка
