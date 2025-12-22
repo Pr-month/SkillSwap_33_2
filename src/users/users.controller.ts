@@ -1,3 +1,4 @@
+import logger from '../config/winston.logger';
 import {
   Body,
   Controller,
@@ -33,6 +34,7 @@ export class UsersController {
     @Query('role') role?: string,
     @Query('gender') gender?: string,
   ) {
+    logger.info('GET /users', { page, limit, name, email, city, role, gender });
     return this.usersService.findAllFiltered({
       page: Number(page),
       limit: Number(limit),

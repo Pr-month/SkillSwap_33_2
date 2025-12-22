@@ -34,7 +34,7 @@ export class AuthService {
     const payload: TJwtPayload = {
       sub: user.id,
       email: user.email,
-      role: UserRole.USER
+      role: UserRole.USER,
     };
 
     const [accessToken, refreshToken] = await Promise.all([
