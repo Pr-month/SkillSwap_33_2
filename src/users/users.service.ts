@@ -1,14 +1,19 @@
-import { Injectable, ConflictException, NotFoundException, BadRequestException, Inject } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
-import { RegisterDto } from "src/auth/dto/register-user.dto";
-import { Repository } from "typeorm";
-import { UpdateUserDto } from "./dto/update-user.dto";
-import { User } from "./entities/user.entity";
-import { GenderOption, UserRole } from "./enums";
+import {
+  Injectable,
+  ConflictException,
+  NotFoundException,
+  BadRequestException,
+  Inject,
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { RegisterDto } from 'src/auth/dto/register-user.dto';
+import { Repository } from 'typeorm';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { User } from './entities/user.entity';
+import { GenderOption, UserRole } from './enums';
 import * as bcrypt from 'bcrypt';
-import { appConfig, AppConfig } from "src/config/app.config";
-import { UpdatePasswordDto } from "./dto/update-password.dto";
-
+import { appConfig, AppConfig } from 'src/config/app.config';
+import { UpdatePasswordDto } from './dto/update-password.dto';
 
 @Injectable()
 export class UsersService {
@@ -17,8 +22,7 @@ export class UsersService {
     private appConfig: AppConfig,
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
-  ) { }
-
+  ) {}
 
   async findAll(): Promise<User[]> {
     const users = await this.usersRepository.find();
@@ -76,12 +80,12 @@ export class UsersService {
   ): Promise<User> {
     const user = await this.usersRepository.findOne({ where: { id } });
     if (!user) {
-      throw new NotFoundException('User not found')
-    };
+      throw new NotFoundException('User not found');
+    }
 
     Object.assign(user, updateData);
 
-    return this.usersRepository.save(user); 
+    return this.usersRepository.save(user);
   }
 
   async updatePassword(id: string, updatePassword: UpdatePasswordDto) {
