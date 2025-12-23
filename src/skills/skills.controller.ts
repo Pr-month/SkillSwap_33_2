@@ -13,17 +13,26 @@ import {
 import { SkillsService } from './skills.service';
 import { CreateSkillDto } from './dto/create-skill.dto';
 import { UpdateSkillDto } from './dto/update-skill.dto';
+import { JwtAccessGuard } from '../auth/guards/jwt-access.guard';
+import { TJwtPayload } from '../auth/types';
+import { Request } from 'express';
 import { PaginationOptionsDto } from './dto/pagination-options.dto';
 import { JwtAccessGuard } from 'src/auth/guards/jwt-access.guard';
 import { TAuthResponse } from 'src/auth/types';
 
+interface RequestWithUser extends Request {
+  user: TJwtPayload;
+}
 @Controller('skills')
 export class SkillsController {
   constructor(private readonly skillsService: SkillsService) {}
 
   @Post()
-  create(@Body() createSkillDto: CreateSkillDto) {
-    return this.skillsService.create(createSkillDto);
+  @UseGuards(JwtAccessGuard)
+  create(@Body() createSkillDto: CreateSkillDto, @Req() req: RequestWithUser) {
+    const ownerId = req.user.sub;
+
+    return this.skillsService.create(createSkillDto, ownerId);
   }
 
   @Get(':id')
