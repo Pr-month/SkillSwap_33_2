@@ -1,15 +1,18 @@
+import { Exclude } from 'class-transformer';
 import { IsDefined, IsEmail, IsNotEmpty, MinLength } from 'class-validator';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
-
-enum UserRole {
-  user = 'USER',
-  admin = 'ADMIN',
-}
-
-enum UserGender {
-  male = 'мужской',
-  female = 'женский',
-}
+import { RefreshToken } from './refreshToken.entity';
+import { GenderOption, UserRole } from '../enums';
+import {
+  BeforeInsert,
+  BeforeUpdate,
+  Column,
+  Entity,
+  ManyToMany,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { Skill } from 'src/skills/entities/skill.entity';
+import { Category } from 'src/categories/entities/category.entity';
 
 @Entity()
 export class User {
@@ -29,6 +32,7 @@ export class User {
   @Column()
   @IsDefined()
   @MinLength(8)
+  @Exclude()
   password: string;
 
   @Column()
@@ -44,30 +48,40 @@ export class User {
 
   @Column({
     type: 'enum',
-    enum: UserGender,
+    enum: GenderOption,
+    default: GenderOption.MALE,
   })
   @IsDefined()
   @IsNotEmpty()
-  gender: string;
+  gender: GenderOption;
 
-  @Column()
+  @Column({ nullable: true }) // пока нет фронта, может быть null
   avatar: string;
 
   @Column({
     type: 'enum',
     enum: UserRole,
-    default: UserRole.user,
+    default: UserRole.USER,
   })
   role: UserRole;
 
-  @Column()
-  refreshToken: string;
+  @BeforeInsert()
+  @BeforeUpdate()
+  emailToLowerCase() {
+    this.email = this.email.toLowerCase();
+  }
 
-  // Добавить связи с другими entity
-  // @Column()
-  // skills: string;
-  // @Column()
-  // wantToLearn: string;
-  // @Column()
-  // favoriteSkills: string;
+  @OneToMany(() => RefreshToken, (token) => token.user, {
+    cascade: true, // автоматически сохраняет/обновляет/удаляет связанные сущности
+  })
+  refreshTokens: RefreshToken[];
+
+  @OneToMany(() => Skill, (skill) => skill.owner, { cascade: true })
+  skills: Skill[];
+
+  @ManyToMany(() => Category, (category) => category.usersWantedToLearn)
+  wantToLearn: Category[];
+
+  @ManyToMany(() => Skill, (skill) => skill.interestedUser)
+  favoriteSkills: Skill[];
 }

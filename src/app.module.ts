@@ -9,11 +9,15 @@ import { JwtConfig, jwtConfig } from './config/jwt.config';
 import { JwtModule, JwtSignOptions } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DatabaseConfig, dbConfig } from './config/db.config';
+import { CategoriesModule } from './categories/categories.module';
+import { FilesModule } from './files/files.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
+import { SkillsModule } from './skills/skills.module';
+import { RequestsModule } from './requests/requests.module';
 
 @Module({
   imports: [
-    UsersModule,
-    AuthModule,
     ConfigModule.forRoot({
       isGlobal: true,
       load: [appConfig, jwtConfig, dbConfig],
@@ -31,8 +35,20 @@ import { DatabaseConfig, dbConfig } from './config/db.config';
     }),
     TypeOrmModule.forRootAsync({
       inject: [dbConfig.KEY],
-      useFactory: (config: DatabaseConfig) => config,
+      useFactory: (config: DatabaseConfig): DatabaseConfig => {
+        return config;
+      },
     }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'public'),
+      serveRoot: '/',
+    }),
+    UsersModule,
+    AuthModule,
+    CategoriesModule,
+    FilesModule,
+    SkillsModule,
+    RequestsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
