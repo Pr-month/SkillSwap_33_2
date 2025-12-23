@@ -10,6 +10,7 @@ import { RegisterDto } from 'src/auth/dto/register-user.dto';
 import { Repository } from 'typeorm';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
+import { GenderOption, UserRole } from './enums';
 import * as bcrypt from 'bcrypt';
 import { appConfig, AppConfig } from 'src/config/app.config';
 import { UpdatePasswordDto } from './dto/update-password.dto';

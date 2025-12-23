@@ -9,6 +9,7 @@ import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
 import { JwtAccessStrategy } from './strategies/jwt-access.strategy';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { RolesGuard } from './guards/roles.guard';
 
 @Module({
   imports: [
@@ -23,6 +24,8 @@ import { ConfigService } from '@nestjs/config';
     JwtAccessStrategy,
     JwtService,
     ConfigService,
+    RolesGuard,
   ],
+  exports: [RolesGuard],
 })
 export class AuthModule {}

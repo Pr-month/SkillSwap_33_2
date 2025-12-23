@@ -1,58 +1,53 @@
+import { Exclude } from 'class-transformer';
+import { IsDefined, IsNotEmpty, Length } from 'class-validator';
+import { Category } from 'src/categories/entities/category.entity';
+import { User } from 'src/users/entities/user.entity';
 import {
-  Entity,
-  PrimaryGeneratedColumn,
   Column,
-  ManyToOne,
-  JoinColumn,
   CreateDateColumn,
+  Entity,
+  JoinTable,
+  ManyToMany,
+  ManyToOne,
+  PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { User } from '../../users/entities/user.entity';
-import { Category } from '../../categories/entities/category.entity';
 
-@Entity('skills')
+@Entity()
 export class Skill {
-  @PrimaryGeneratedColumn()
-  id: number;
-
-  @Column({ length: 100 })
-  title: string;
-
-  @Column('text')
-  description: string;
-
-  @Column('simple-array', { nullable: true })
-  images: string[];
-
-  @ManyToOne(
-    () => User,
-    /* (user) => user.skills, <- ⚠️раскомментируй это, если Entity готов **/ {
-      nullable: false,
-      onDelete: 'CASCADE', // При удалении пользователя удаляются его навыки
-    },
-  )
-  @JoinColumn({ name: 'ownerId' })
-  owner: User;
-
-  @Column()
-  ownerId: string;
-
-  @ManyToOne(
-    () => Category,
-    /* (category) => category.skills, <- ⚠️раскомментируй это, если Entity готов **/ {
-      nullable: false,
-      onDelete: 'RESTRICT', // Нельзя удалить категорию, если есть навыки
-    },
-  )
-  @JoinColumn({ name: 'categoryId' })
-  category: Category;
-
-  @Column()
-  categoryId: string;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @CreateDateColumn()
+  @Exclude()
   createdAt: Date;
 
   @UpdateDateColumn()
+  @Exclude()
   updatedAt: Date;
+
+  @Column('text')
+  @IsDefined()
+  @IsNotEmpty()
+  @Length(2, 100)
+  title: string;
+
+  @Column('text')
+  @IsDefined()
+  @IsNotEmpty()
+  @Length(2, 500)
+  description: string;
+
+  @ManyToOne(() => Category, (category) => category.children)
+  category: Category;
+
+  @Column('text', { array: true, default: [] })
+  images: string[];
+
+  @ManyToOne(() => User, (user) => user.skills)
+  owner: User;
+
+  @ManyToMany(() => User, (user) => user.favoriteSkills)
+  @JoinTable()
+  interestedUser: User[];
 }
