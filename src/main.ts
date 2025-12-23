@@ -3,10 +3,15 @@ import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 import { AppConfig } from './config/app.config';
 import { ValidationPipe } from '@nestjs/common';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AllExceptionsFilter } from './common/all-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // Устанавливаем глобальный префикс для всего API (по ТЗ)
+  // Теперь все роуты будут начинаться с /api (например, /api/auth/login)
+  app.setGlobalPrefix('api');
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -15,6 +20,19 @@ async function bootstrap() {
       transform: true, // Автоматическая типизация данных
     }),
   );
+
+  // Настройка Swagger
+  const configSwagger = new DocumentBuilder()
+    .setTitle('SkillSwap API')
+    .setDescription('Платформа для обмена навыками')
+    .setVersion('1.0')
+    .addBearerAuth()
+    .build();
+
+  const document = SwaggerModule.createDocument(app, configSwagger);
+
+  // Подключаем Swagger по адресу /api/docs
+  SwaggerModule.setup('api/docs', app, document);
 
   app.useGlobalFilters(new AllExceptionsFilter());
 
