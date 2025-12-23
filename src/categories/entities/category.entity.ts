@@ -24,7 +24,7 @@ export class Category {
     onDelete: 'CASCADE', // при удалении родителя удаляются дети
   })
   parent: Category | null;
-  
+
   @OneToMany(() => Category, (category) => category.parent)
   children: Category[];
 

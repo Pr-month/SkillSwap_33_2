@@ -17,7 +17,6 @@ import { JwtAccessGuard } from '../auth/guards/jwt-access.guard';
 import { TAuthResponse } from 'src/auth/types';
 import { PaginationOptionsDto } from './dto/pagination-options.dto';
 
-
 @Controller('skills')
 export class SkillsController {
   constructor(private readonly skillsService: SkillsService) {}
