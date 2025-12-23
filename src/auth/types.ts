@@ -14,3 +14,13 @@ export type Tokens = {
   accessToken: string;
   refreshToken: string;
 };
+
+export type JwtPayloadWithRoles = {
+  sub: string;
+  email: string;
+  roles: string[];
+};
+
+export type AuthenticatedRequest = Request & {
+  user: JwtPayloadWithRoles;
+};
