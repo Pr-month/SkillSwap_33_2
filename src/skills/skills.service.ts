@@ -1,21 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateSkillDto } from './dto/create-skill.dto';
 import { UpdateSkillDto } from './dto/update-skill.dto';
 import { Skill } from './entities/skill.entity';
 import { Category } from '../categories/entities/category.entity';
-import {
-  ForbiddenException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
-import { CreateSkillDto } from './dto/create-skill.dto';
-import { UpdateSkillDto } from './dto/update-skill.dto';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Skill } from './entities/skill.entity';
-import { Repository } from 'typeorm';
-import { OrderBy, PaginationOptionsDto } from './dto/pagination-options.dto';
+import { PaginationOptionsDto, OrderBy } from './dto/pagination-options.dto';
 
 @Injectable()
 export class SkillsService {
@@ -24,7 +14,7 @@ export class SkillsService {
     private skillsRepository: Repository<Skill>,
     @InjectRepository(Category)
     private categoriesRepository: Repository<Category>,
-  ) {}
+  ) { }
 
   async create(
     createSkillDto: CreateSkillDto,
@@ -44,7 +34,7 @@ export class SkillsService {
     // 2. Создаем навык с ownerId
     const skill = this.skillsRepository.create({
       ...createSkillDto,
-      ownerId,
+      owner: { id: ownerId },
       category,
     });
 
