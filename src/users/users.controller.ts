@@ -43,6 +43,11 @@ export class UsersController {
   ) {
     return this.usersService.updatePassword(req.user.sub, updatePassword);
   }
+  
+  @Get('by-skill/:id')
+  findUsersBySimilarSkill(@Param('id') skillId: string) {
+    return this.usersService.findUsersBySimilarSkill(skillId);
+  }
 
   @Get(':id')
   findUser(@Param('id') id: string) {
