@@ -1,7 +1,7 @@
 import { Exclude } from 'class-transformer';
 import { IsDefined, IsNotEmpty, Length } from 'class-validator';
-import { Category } from 'src/categories/entities/category.entity';
-import { User } from 'src/users/entities/user.entity';
+import { Category } from '../../categories/entities/category.entity';
+import { User } from '../../users/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
