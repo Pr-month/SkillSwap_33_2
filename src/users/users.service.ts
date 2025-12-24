@@ -4,6 +4,7 @@ import {
   NotFoundException,
   BadRequestException,
   Inject,
+  ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from "@nestjs/typeorm";
 import { RegisterDto } from "src/auth/dto/register-user.dto";
@@ -160,12 +161,16 @@ export class UsersService {
       .skip((page - 1) * limit)
       .take(limit)
       .getManyAndCount();
+    const lastPage = Math.ceil(total / limit);
+    if (page > lastPage && total !== 0) {
+      throw new ForbiddenException('Page number exceeds last page');
+    }
     return {
       data: users,
       meta: {
         total,
         page,
-        lastPage: Math.ceil(total / limit),
+        lastPage,
         limit,
       },
     };
