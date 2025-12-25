@@ -49,5 +49,5 @@ export class Skill {
 
   @ManyToMany(() => User, (user) => user.favoriteSkills)
   @JoinTable()
-  interestedUser: User[];
+  interestedUsers: User[];
 }

@@ -10,6 +10,7 @@ import { UpdateSkillDto } from './dto/update-skill.dto';
 import { Skill } from './entities/skill.entity';
 import { Category } from '../categories/entities/category.entity';
 import { PaginationOptionsDto, OrderBy } from './dto/pagination-options.dto';
+import { User } from '../users/entities/user.entity';
 
 @Injectable()
 export class SkillsService {
@@ -18,6 +19,8 @@ export class SkillsService {
     private skillsRepository: Repository<Skill>,
     @InjectRepository(Category)
     private categoriesRepository: Repository<Category>,
+    @InjectRepository(User)
+    private usersRepository: Repository<User>,
   ) {}
 
   async create(
@@ -90,5 +93,32 @@ export class SkillsService {
       throw new ForbiddenException('Forbidden');
     }
     return this.skillsRepository.save({ ...skill, ...updateSkill });
+  }
+
+  async removeFromFavorites(skillId: string, userId: string): Promise<Skill> {
+    // Находим навык с загруженными interestedUser
+    const skill = await this.skillsRepository.findOne({
+      where: { id: skillId },
+      relations: ['interestedUser'],
+    });
+
+    if (!skill) {
+      throw new NotFoundException('Навык не найден');
+    }
+
+    // Проверяем, есть ли пользователь в списке interestedUser
+    const userIndex = skill.interestedUsers.findIndex(
+      (user) => user.id === userId,
+    );
+
+    if (userIndex === -1) {
+      throw new NotFoundException('Навык не найден в избранном');
+    }
+
+    // Удаляем пользователя из списка
+    skill.interestedUsers.splice(userIndex, 1);
+
+    // Сохраняем изменения
+    return await this.skillsRepository.save(skill);
   }
 }

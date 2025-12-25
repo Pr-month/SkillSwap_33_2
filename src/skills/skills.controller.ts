@@ -9,6 +9,8 @@ import {
   Query,
   UseGuards,
   Req,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { SkillsService } from './skills.service';
 import { CreateSkillDto } from './dto/create-skill.dto';
@@ -52,5 +54,15 @@ export class SkillsController {
     @Body() updateSkillDto: UpdateSkillDto,
   ) {
     return this.skillsService.update(req.user.sub, id, updateSkillDto);
+  }
+
+  @Delete(':id/favorites')
+  @UseGuards(JwtAccessGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async removeFromFavorites(
+    @Param('id') skillId: string,
+    @Req() req: TAuthResponse,
+  ) {
+    await this.skillsService.removeFromFavorites(skillId, req.user.sub);
   }
 }

@@ -82,6 +82,6 @@ export class User {
   @ManyToMany(() => Category, (category) => category.usersWantedToLearn)
   wantToLearn: Category[];
 
-  @ManyToMany(() => Skill, (skill) => skill.interestedUser)
+  @ManyToMany(() => Skill, (skill) => skill.interestedUsers)
   favoriteSkills: Skill[];
 }
