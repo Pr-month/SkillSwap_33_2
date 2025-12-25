@@ -1,20 +1,19 @@
 import {
-  Injectable,
-  ConflictException,
-  NotFoundException,
   BadRequestException,
+  ConflictException,
+  ForbiddenException,
   Inject,
+  Injectable,
+  NotFoundException,
 } from '@nestjs/common';
-import { InjectRepository } from "@nestjs/typeorm";
-import { RegisterDto } from "src/auth/dto/register-user.dto";
-import { Repository } from "typeorm";
-import { UpdateUserDto } from "./dto/update-user.dto";
-import { User } from "./entities/user.entity";
-import { GenderOption, UserRole } from "./enums"; 
+import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
-import { appConfig, AppConfig } from "src/config/app.config";
-import { UpdatePasswordDto } from "./dto/update-password.dto";
-
+import { RegisterDto } from 'src/auth/dto/register-user.dto';
+import { appConfig, AppConfig } from 'src/config/app.config';
+import { Repository } from 'typeorm';
+import { UpdatePasswordDto } from './dto/update-password.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { User } from './entities/user.entity';
 
 @Injectable()
 export class UsersService {
@@ -23,8 +22,7 @@ export class UsersService {
     private appConfig: AppConfig,
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
-  ) { }
-
+  ) {}
 
   async findAll(): Promise<User[]> {
     const users = await this.usersRepository.find();
@@ -160,12 +158,16 @@ export class UsersService {
       .skip((page - 1) * limit)
       .take(limit)
       .getManyAndCount();
+    const lastPage = Math.ceil(total / limit);
+    if (page > lastPage && total !== 0) {
+      throw new ForbiddenException('Page number exceeds last page');
+    }
     return {
       data: users,
       meta: {
         total,
         page,
-        lastPage: Math.ceil(total / limit),
+        lastPage,
         limit,
       },
     };
