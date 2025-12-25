@@ -4,6 +4,7 @@ import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 import { AppConfig } from './config/app.config';
 import { ValidationPipe } from '@nestjs/common';
+import { WinstonInterceptor } from './config/winston.interceptor';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AllExceptionsFilter } from './common/all-exception.filter';
 
@@ -22,6 +23,7 @@ async function bootstrap() {
     }),
   );
 
+  app.useGlobalInterceptors(new WinstonInterceptor());
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
   // Настройка Swagger
   const configSwagger = new DocumentBuilder()

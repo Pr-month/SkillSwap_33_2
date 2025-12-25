@@ -1,3 +1,4 @@
+import logger from '../config/winston.logger';
 import {
   BadRequestException,
   ConflictException,
@@ -60,9 +61,15 @@ export class UsersService {
   }
 
   async findUserById(id: string) {
-    return await this.usersRepository.findOneOrFail({
-      where: { id },
-    });
+    try {
+      const user = await this.usersRepository.findOneOrFail({ where: { id } });
+      logger.info('User found', { id });
+      return user;
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      logger.error('User not found', { id, error: errorMsg });
+      throw error;
+    }
   }
 
   async getCurrentUser(id: string) {

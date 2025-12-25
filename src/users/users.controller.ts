@@ -4,6 +4,7 @@ import { UpdatePasswordDto } from './dto/update-password.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersService } from './users.service';
 import { Controller, Get, Query, UseGuards, Req, Patch, Body, Param, NotFoundException } from '@nestjs/common';
+import logger from 'src/config/winston.logger';
 
 @Controller('users')
 export class UsersController {
@@ -19,6 +20,7 @@ export class UsersController {
     @Query('role') role?: string,
     @Query('gender') gender?: string,
   ) {
+    logger.info('GET /users', { page, limit, name, email, city, role, gender });
     return this.usersService.findAllFiltered({
       page: Number(page),
       limit: Number(limit),
