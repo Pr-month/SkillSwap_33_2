@@ -20,7 +20,7 @@ export class AuthService {
     private readonly configService: ConfigService,
     @InjectRepository(RefreshToken)
     private refreshTokensRepository: Repository<RefreshToken>,
-  ) { }
+  ) {}
 
   async register(registerDto: RegisterDto) {
     const user = await this.usersService.register(registerDto);

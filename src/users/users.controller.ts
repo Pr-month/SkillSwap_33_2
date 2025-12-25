@@ -1,28 +1,13 @@
-import logger from '../config/winston.logger';
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Patch,
-  Req,
-  UseGuards,
-  Query,
-  UseInterceptors,
-  ClassSerializerInterceptor,
-  NotFoundException,
-} from '@nestjs/common';
 import { JwtAccessGuard } from 'src/auth/guards/jwt-access.guard';
 import { TAuthResponse } from 'src/auth/types';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersService } from './users.service';
+import { Controller, Get, Query, UseGuards, Req, Patch, Body, Param, NotFoundException } from '@nestjs/common';
 
 @Controller('users')
-@UseInterceptors(ClassSerializerInterceptor)
 export class UsersController {
-  constructor(private readonly usersService: UsersService) { }
+  constructor(private readonly usersService: UsersService) {}
 
   @Get()
   findAll(
