@@ -133,6 +133,7 @@ export class UsersService {
       .leftJoin('user.wantToLearn', 'wantToLearn')
       .where('skillCategory.id = :categoryId', { categoryId })
       .orWhere('wantToLearn.id = :categoryId', { categoryId })
+      .distinct(true)
       .take(10)
       .getMany();
 
