@@ -31,12 +31,14 @@ export class SkillsController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.skillsService.findOne(+id);
+    return this.skillsService.findOne(id);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.skillsService.remove(+id);
+  @UseGuards(JwtAccessGuard)
+  remove(@Param('id') id: string, @Req() req: TAuthResponse) {
+    const userId = req.user.sub;
+    return this.skillsService.remove(id, userId);
   }
 
   @Get()

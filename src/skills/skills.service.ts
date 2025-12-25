@@ -46,17 +46,31 @@ export class SkillsService {
     return await this.skillsRepository.save(skill);
   }
 
-  // ... остальные методы пока остаются как есть
   findAll() {
     return `This action returns all skills`;
   }
 
-  findOne(id: number) {
+  findOne(id: string) {
     return `This action returns a #${id} skill`;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} skill`;
+  async remove(id: string, userId: string): Promise<{ message: string }> {
+    const skill = await this.skillsRepository.findOne({
+      relations: ['owner'],
+      where: { id },
+    });
+
+    if (!skill) {
+      throw new NotFoundException(`Навык с ID ${id} не найден`);
+    }
+
+    if (!skill.owner || skill.owner.id !== userId) {
+      throw new ForbiddenException('Вы можете удалять только свои навыки');
+    }
+
+    await this.skillsRepository.remove(skill);
+
+    return { message: 'Навык успешно удален' };
   }
 
   async findSkills(paginationOptions: PaginationOptionsDto) {
