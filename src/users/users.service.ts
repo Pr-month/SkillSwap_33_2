@@ -110,4 +110,66 @@ export class UsersService {
 
     return this.usersRepository.save({ ...user, password: hashedPassword });
   }
+
+  async findAllFiltered({
+    page = 1,
+    limit = 10,
+    name,
+    email,
+    city,
+    role,
+    gender,
+  }: {
+    page?: number;
+    limit?: number;
+    name?: string;
+    email?: string;
+    city?: string;
+    role?: string;
+    gender?: string;
+  }) {
+    const query = this.usersRepository.createQueryBuilder('user');
+    if (name) {
+      query.andWhere('LOWER(user.name) LIKE LOWER(:name)', {
+        name: `%${name}%`,
+      });
+    }
+    if (email) {
+      query.andWhere('LOWER(user.email) LIKE LOWER(:email)', {
+        email: `%${email}%`,
+      });
+    }
+    if (city) {
+      query.andWhere('LOWER(user.city) LIKE LOWER(:city)', {
+        city: `%${city}%`,
+      });
+    }
+    if (role) {
+      query.andWhere('user.role = :role', {
+        role,
+      });
+    }
+    if (gender) {
+      query.andWhere('user.gender = :gender', {
+        gender,
+      });
+    }
+    const [users, total] = await query
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+    const lastPage = Math.ceil(total / limit);
+    if (page > lastPage && total !== 0) {
+      throw new ForbiddenException('Page number exceeds last page');
+    }
+    return {
+      data: users,
+      meta: {
+        total,
+        page,
+        lastPage,
+        limit,
+      },
+    };
+  }
 }
