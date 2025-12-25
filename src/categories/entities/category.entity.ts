@@ -1,6 +1,11 @@
+import { IsDefined, IsNotEmpty, Length } from 'class-validator';
+import { Skill } from 'src/skills/entities/skill.entity';
+import { User } from 'src/users/entities/user.entity';
 import {
   Column,
   Entity,
+  JoinTable,
+  ManyToMany,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -22,4 +27,11 @@ export class Category {
 
   @OneToMany(() => Category, (category) => category.parent)
   children: Category[];
+
+  @OneToMany(() => Skill, (skill) => skill.category, { cascade: true })
+  skills: Skill[];
+
+  @ManyToMany(() => User, (user) => user.wantToLearn)
+  @JoinTable()
+  usersWantedToLearn: User[];
 }

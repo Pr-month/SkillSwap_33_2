@@ -4,18 +4,16 @@ import {
   NotFoundException,
   BadRequestException,
   Inject,
-  ForbiddenException,
 } from '@nestjs/common';
-import { InjectRepository } from "@nestjs/typeorm";
-import { RegisterDto } from "src/auth/dto/register-user.dto";
-import { Repository } from "typeorm";
-import { UpdateUserDto } from "./dto/update-user.dto";
-import { User } from "./entities/user.entity";
-import { GenderOption, UserRole } from "./enums"; 
+import { InjectRepository } from '@nestjs/typeorm';
+import { RegisterDto } from 'src/auth/dto/register-user.dto';
+import { Repository } from 'typeorm';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { User } from './entities/user.entity';
+import { GenderOption, UserRole } from './enums';
 import * as bcrypt from 'bcrypt';
-import { appConfig, AppConfig } from "src/config/app.config";
-import { UpdatePasswordDto } from "./dto/update-password.dto";
-
+import { appConfig, AppConfig } from 'src/config/app.config';
+import { UpdatePasswordDto } from './dto/update-password.dto';
 
 @Injectable()
 export class UsersService {
@@ -24,8 +22,7 @@ export class UsersService {
     private appConfig: AppConfig,
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
-  ) { }
-
+  ) {}
 
   async findAll(): Promise<User[]> {
     const users = await this.usersRepository.find();

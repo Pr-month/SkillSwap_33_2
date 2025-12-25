@@ -1,4 +1,3 @@
-import { Body, Controller, Delete, Get, Param, Patch, Req, UseGuards, Query } from '@nestjs/common';
 import { JwtAccessGuard } from 'src/auth/guards/jwt-access.guard';
 import { TAuthResponse } from 'src/auth/types';
 import { UpdatePasswordDto } from './dto/update-password.dto';
@@ -7,7 +6,7 @@ import { UsersService } from './users.service';
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) { }
+  constructor(private readonly usersService: UsersService) {}
 
   @Get()
   findAll(
@@ -38,9 +37,7 @@ export class UsersController {
 
   @Patch('me')
   @UseGuards(JwtAccessGuard)
-  updateMe(
-    @Req() req: TAuthResponse,
-    @Body() updateMeDto: UpdateUserDto) {
+  updateMe(@Req() req: TAuthResponse, @Body() updateMeDto: UpdateUserDto) {
     return this.usersService.updateCurrentUser(req.user.sub, updateMeDto);
   }
 
