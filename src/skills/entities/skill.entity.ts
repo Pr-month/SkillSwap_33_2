@@ -44,10 +44,10 @@ export class Skill {
   @Column('text', { array: true, default: [] })
   images: string[];
 
-  @ManyToOne(() => User, (user) => user.skills)
+  @ManyToOne(() => User)
   owner: User;
 
   @ManyToMany(() => User, (user) => user.favoriteSkills)
   @JoinTable()
-  interestedUser: User[];
+  interestedUsers: User[];
 }
