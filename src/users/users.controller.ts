@@ -4,6 +4,7 @@ import { UpdatePasswordDto } from './dto/update-password.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersService } from './users.service';
 import { Controller, Get, Query, UseGuards, Req, Patch, Body, Param, NotFoundException } from '@nestjs/common';
+import logger from 'src/config/winston.logger';
 
 @Controller('users')
 export class UsersController {
