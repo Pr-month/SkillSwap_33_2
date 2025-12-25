@@ -3,7 +3,7 @@ import { TAuthResponse } from 'src/auth/types';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersService } from './users.service';
-import { Controller, Get, Query, UseGuards, Req, Patch, Body, Param } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards, Req, Patch, Body, Param, NotFoundException } from '@nestjs/common';
 
 @Controller('users')
 export class UsersController {
@@ -52,7 +52,16 @@ export class UsersController {
   }
 
   @Get(':id')
-  findUser(@Param('id') id: string) {
-    return this.usersService.findUserById(id);
+  @UseGuards(JwtAccessGuard)
+  async findUser(@Param('id') id: string) {
+    try {
+      const user = await this.usersService.findUserById(id);
+      return user;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException('Пользователь не найден');
+      }
+      throw error;
+    }
   }
 }
