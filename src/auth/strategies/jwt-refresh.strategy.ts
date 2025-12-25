@@ -1,23 +1,9 @@
 import { Injectable } from '@nestjs/common';
+import { TJwtPayload } from '../types';
 import { PassportStrategy } from '@nestjs/passport'; // npm install --save-dev @types/passport-jwt
 import { ExtractJwt, Strategy } from 'passport-jwt'; // npm install passport-jwt
 import { Request } from 'express';
 import { ConfigService } from '@nestjs/config';
-
-// Временный интерфейс
-interface JwtPayload {
-  sub: string;
-  email: string;
-  roles?: string[];
-}
-
-// Временный интерфейс
-interface ValidateResult {
-  userId: string;
-  email: string;
-  refreshToken: string | undefined;
-  roles: string[];
-}
 
 @Injectable()
 export class JwtRefreshStrategy extends PassportStrategy(
@@ -36,14 +22,14 @@ export class JwtRefreshStrategy extends PassportStrategy(
     });
   }
 
-  async validate(req: Request, payload: JwtPayload): Promise<ValidateResult> {
+  async validate(req: Request, payload: TJwtPayload) {
     await Promise.resolve();
     const refreshToken = req.headers['authorization']?.split(' ')[1];
     return {
       userId: payload.sub,
       email: payload.email,
       refreshToken,
-      roles: payload.roles || [],
+      role: payload.role,
     };
   }
 }
