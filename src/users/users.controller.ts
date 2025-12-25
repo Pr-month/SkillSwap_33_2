@@ -3,6 +3,7 @@ import { TAuthResponse } from 'src/auth/types';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersService } from './users.service';
+import { Controller, Get, Query, UseGuards, Req, Patch, Body, Param } from '@nestjs/common';
 
 @Controller('users')
 export class UsersController {

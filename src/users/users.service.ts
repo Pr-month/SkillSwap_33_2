@@ -1,19 +1,19 @@
 import {
-  Injectable,
-  ConflictException,
-  NotFoundException,
   BadRequestException,
+  ConflictException,
+  ForbiddenException,
   Inject,
+  Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import * as bcrypt from 'bcrypt';
 import { RegisterDto } from 'src/auth/dto/register-user.dto';
+import { appConfig, AppConfig } from 'src/config/app.config';
 import { Repository } from 'typeorm';
+import { UpdatePasswordDto } from './dto/update-password.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
-import { GenderOption, UserRole } from './enums';
-import * as bcrypt from 'bcrypt';
-import { appConfig, AppConfig } from 'src/config/app.config';
-import { UpdatePasswordDto } from './dto/update-password.dto';
 
 @Injectable()
 export class UsersService {
