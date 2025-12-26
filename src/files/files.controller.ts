@@ -7,68 +7,53 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
-import { extname } from 'path';
-import * as crypto from 'crypto';
-import * as fs from 'fs';
 import { FilesService } from './files.service';
-
-// Белый список форматов
-const ALLOWED_MIME_TYPES = new Set([
-  'image/jpeg',
-  'image/png',
-  'image/gif',
-  'image/webp',
-  'image/avif',
-]);
+import {
+  validateFile,
+  generateRandomFilename,
+  ensureUploadDirectoryExists,
+} from './file.utils';
+import { MAX_FILE_SIZE, UPLOAD_PATH } from './file.constants';
 
 @Controller('files')
 export class FilesController {
   constructor(private readonly filesService: FilesService) {}
 
+  /**
+   * Обрабатывает загрузку файла с валидацией MIME-типа, расширения и размера
+   */
   @Post('upload')
   @UseInterceptors(
     FileInterceptor('file', {
-      fileFilter: (_req, file, cb) => {
-        if (!ALLOWED_MIME_TYPES.has(file.mimetype)) {
-          return cb(
+      fileFilter: (_req, file, callback) => {
+        if (!validateFile(file.mimetype, file.originalname)) {
+          return callback(
             new BadRequestException(
-              'Недопустимый формат файла. Разрешены: jpeg, png, gif, webp, avif',
+              'Недопустимый формат файла. Разрешены: jpg, jpeg, png, gif, webp, avif',
             ),
             false,
           );
         }
-
-        cb(null, true);
+        callback(null, true);
       },
       limits: {
-        fileSize: 2 * 1024 * 1024,
+        fileSize: MAX_FILE_SIZE,
       },
       storage: diskStorage({
-        destination: (_req, _file, cb) => {
-          const uploadPath = './public/uploads';
-
-          // Создаем папку, если ее нет
-          if (!fs.existsSync(uploadPath)) {
-            fs.mkdirSync(uploadPath, { recursive: true });
-          }
-
-          cb(null, uploadPath);
+        destination: (_req, _file, callback) => {
+          ensureUploadDirectoryExists(UPLOAD_PATH);
+          callback(null, UPLOAD_PATH);
         },
-        filename: (_req, file, cb) => {
-          // Генерируем случайное имя (16 байт hex)
-          const randomName = crypto.randomBytes(16).toString('hex');
-          const extension = extname(file.originalname).toLowerCase();
-
-          cb(null, `${randomName}${extension}`);
+        filename: (_req, file, callback) => {
+          callback(null, generateRandomFilename(file.originalname));
         },
       }),
     }),
   )
-  uploadFile(@UploadedFile() file: Express.Multer.File) {
+  uploadFile(@UploadedFile() file: Express.Multer.File | undefined) {
     if (!file) {
       throw new BadRequestException('Файл не был загружен');
     }
-
     return this.filesService.createFileResponse(file);
   }
 }

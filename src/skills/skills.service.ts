@@ -1,4 +1,5 @@
 import {
+  ConflictException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -95,6 +96,42 @@ export class SkillsService {
     return this.skillsRepository.save({ ...skill, ...updateSkill });
   }
 
+  async addToFavorites(skillId: string, userId: string): Promise<Skill> {
+    // Находим навык с загруженными interestedUser
+    const skill = await this.skillsRepository.findOne({
+      where: { id: skillId },
+      relations: ['interestedUser'],
+    });
+
+    if (!skill) {
+      throw new NotFoundException('Навык не найден');
+    }
+
+    // Проверяем, есть ли уже пользователь в списке interestedUser
+    const isAlreadyFavorite = skill.interestedUsers.some(
+      (user) => user.id === userId,
+    );
+
+    if (isAlreadyFavorite) {
+      throw new ConflictException('Навык уже в избранном');
+    }
+
+    // Находим пользователя
+    const user = await this.usersRepository.findOne({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('Пользователь не найден');
+    }
+
+    // Добавляем пользователя в список
+    skill.interestedUsers.push(user);
+
+    // Сохраняем изменения
+    return await this.skillsRepository.save(skill);
+  }
+  
   async removeFromFavorites(skillId: string, userId: string): Promise<Skill> {
     // Находим навык с загруженными interestedUser
     const skill = await this.skillsRepository.findOne({

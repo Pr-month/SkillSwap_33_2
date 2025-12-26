@@ -65,4 +65,11 @@ export class SkillsController {
   ) {
     await this.skillsService.removeFromFavorites(skillId, req.user.sub);
   }
+  
+  @Post(':id/favorites')
+  @UseGuards(JwtAccessGuard)
+  @HttpCode(HttpStatus.CREATED)
+  addToFavorites(@Param('id') skillId: string, @Req() req: TAuthResponse) {
+    return this.skillsService.addToFavorites(skillId, req.user.sub);
+  }
 }
