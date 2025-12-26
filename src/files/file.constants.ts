@@ -21,4 +21,5 @@ export const ALLOWED_EXTENSIONS = new Set<string>([
 export const MAX_FILE_SIZE = 2 * 1024 * 1024;
 
 // Путь к директории для сохранения загруженных файлов
-export const UPLOAD_PATH = './public/uploads';
+export const UPLOAD_PATH =
+  process.env.NODE_ENV === 'test' ? './test_uploads' : './public/uploads';
