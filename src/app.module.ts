@@ -35,9 +35,10 @@ import { RequestsModule } from './requests/requests.module';
     }),
     TypeOrmModule.forRootAsync({
       inject: [dbConfig.KEY],
-      useFactory: (config: DatabaseConfig): DatabaseConfig => {
-        return config;
-      },
+      useFactory: (config: DatabaseConfig) => ({
+        ...config,
+        autoLoadEntities: true,
+      }),
     }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'public'),

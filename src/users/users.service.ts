@@ -11,10 +11,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { RegisterDto } from 'src/auth/dto/register-user.dto';
 import { appConfig, AppConfig } from 'src/config/app.config';
+import { Skill } from 'src/skills/entities/skill.entity';
 import { Repository } from 'typeorm';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
+
 
 @Injectable()
 export class UsersService {
@@ -23,6 +25,8 @@ export class UsersService {
     private appConfig: AppConfig,
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
+    @InjectRepository(Skill)
+    private readonly skillsRepository: Repository<Skill>,
   ) {}
 
   async findAll(): Promise<User[]> {
@@ -118,6 +122,32 @@ export class UsersService {
     return this.usersRepository.save({ ...user, password: hashedPassword });
   }
 
+  async findUsersBySimilarSkill(skillId: string) {
+    const skill = await this.skillsRepository.findOne({
+      where: { id: skillId },
+      relations: ['category'],
+    });
+
+    if (!skill) {
+      throw new NotFoundException('Skill not found');
+    }
+
+    const categoryId = skill.category.id;
+
+    const users = await this.usersRepository
+      .createQueryBuilder('user')
+      .leftJoin('user.skills', 'skill')
+      .leftJoin('skill.category', 'skillCategory')
+      .leftJoin('user.wantToLearn', 'wantToLearn')
+      .where('skillCategory.id = :categoryId', { categoryId })
+      .orWhere('wantToLearn.id = :categoryId', { categoryId })
+      .distinct(true)
+      .take(10)
+      .getMany();
+
+    return users;
+  }
+  
   async findAllFiltered({
     page = 1,
     limit = 10,
