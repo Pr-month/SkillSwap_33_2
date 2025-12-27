@@ -11,15 +11,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { RegisterDto } from 'src/auth/dto/register-user.dto';
 import { appConfig, AppConfig } from 'src/config/app.config';
+import { Skill } from 'src/skills/entities/skill.entity';
 import { Repository } from 'typeorm';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
-import { GenderOption, UserRole } from './enums';
-import * as bcrypt from 'bcrypt';
-import { appConfig, AppConfig } from 'src/config/app.config';
-import { UpdatePasswordDto } from './dto/update-password.dto';
-import { Skill } from 'src/skills/entities/skill.entity';
 
 
 @Injectable()
