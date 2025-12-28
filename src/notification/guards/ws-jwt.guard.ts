@@ -1,14 +1,17 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { Inject, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { WsException } from '@nestjs/websockets';
 import { UsersService } from '../../users/users.service';
-import { JwtPayload, WsClient } from './ws-types';
+import { WsClient } from './ws-types';
+import { JwtConfig, jwtConfig } from '../../config/jwt.config';
+import { TJwtPayload } from '../../auth/types';
 
 @Injectable()
 export class WsJwtGuard {
   constructor(
     private jwtService: JwtService,
-    private configService: ConfigService,
+    @Inject(jwtConfig.KEY)
+    private readonly jwtConfig: JwtConfig,
     private userService: UsersService,
   ) {}
 
@@ -20,12 +23,12 @@ export class WsJwtGuard {
     const token = client.handshake.query?.token;
 
     if (!token) {
-      throw new UnauthorizedException('Token is missing');
+      throw new WsException('Token is missing');
     }
 
     try {
-      const payload = this.jwtService.verify<JwtPayload>(token, {
-        secret: this.configService.get('JWT_SECRET'),
+      const payload = this.jwtService.verify<TJwtPayload>(token, {
+        secret: this.jwtConfig.accessToken,
       });
 
       const user = await this.userService.findUserById(payload.sub);
@@ -35,10 +38,10 @@ export class WsJwtGuard {
     } catch (error: unknown) {
       // Безопасная проверка типа ошибки
       if (error instanceof Error && error.name === 'EntityNotFoundError') {
-        throw new UnauthorizedException('User not found');
+        throw new WsException('User not found');
       }
       // Любая другая ошибка (невалидный токен, просрочен и т.д.)
-      throw new UnauthorizedException('Invalid token');
+      throw new WsException('Invalid token');
     }
   }
 }

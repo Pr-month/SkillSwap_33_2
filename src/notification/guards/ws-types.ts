@@ -9,14 +9,6 @@ export type NotificationType =
   | 'request_rejected';
 
 /**
- * Payload для JWT токена
- */
-export interface JwtPayload {
-  sub: string;
-  email: string;
-}
-
-/**
  * Расширенный клиент Websocket с данными авторизации
  */
 export interface WsClient {
