@@ -131,7 +131,7 @@ export class SkillsService {
     // Сохраняем изменения
     return await this.skillsRepository.save(skill);
   }
-  
+
   async removeFromFavorites(skillId: string, userId: string): Promise<Skill> {
     // Находим навык с загруженными interestedUser
     const skill = await this.skillsRepository.findOne({

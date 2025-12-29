@@ -7,9 +7,46 @@ import { ValidationPipe } from '@nestjs/common';
 import { WinstonInterceptor } from './config/winston.interceptor';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AllExceptionsFilter } from './common/all-exception.filter';
+import helmet from 'helmet';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // Определяем окружение
+  const isProduction = process.env.NODE_ENV === 'production';
+
+  // Базовая конфигурация Helmet
+  app.use(
+    helmet({
+      // Временно отключаем CSP - чтобы не сломать Swagger
+      contentSecurityPolicy: isProduction
+        ? {
+            directives: {
+              defaultSrc: ["'self'"],
+              styleSrc: ["'self'", "'unsafe-inline'"], // Для Swagger и inline стилей
+              scriptSrc: ["'self'", "'unsafe-inline'"], // Для Swagger
+              imgSrc: ["'self'", 'data:', 'blob:', 'https:'], // Для изображений и данных
+              fontSrc: ["'self'", 'https:', 'data:'], // Для шрифтов
+              connectSrc: ["'self'"], // Для API запросов
+            },
+          }
+        : false,
+
+      xXssProtection: true, // Включаем XSS защиту
+      hidePoweredBy: true, // Скрывает X-Powered-By
+      frameguard: { action: 'sameorigin' }, // Защита от clickjacking
+      hsts: isProduction
+        ? {
+            maxAge: 31536000,
+            includeSubDomains: true,
+            preload: true,
+          }
+        : false, // Отключаем в development
+      ieNoOpen: true, // Защита для IE
+      noSniff: true, // Запрещает MIME-sniffing
+      referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+    }),
+  );
 
   // Устанавливаем глобальный префикс для всего API (по ТЗ)
   // Теперь все роуты будут начинаться с /api (например, /api/auth/login)

@@ -17,7 +17,6 @@ import { UpdatePasswordDto } from './dto/update-password.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 
-
 @Injectable()
 export class UsersService {
   constructor(
@@ -147,7 +146,7 @@ export class UsersService {
 
     return users;
   }
-  
+
   async findAllFiltered({
     page = 1,
     limit = 10,
