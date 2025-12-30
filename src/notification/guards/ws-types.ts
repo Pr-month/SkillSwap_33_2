@@ -1,3 +1,4 @@
+import { Socket } from 'socket.io';
 import { User } from '../../users/entities/user.entity';
 
 /**
@@ -30,4 +31,13 @@ export interface NotificationPayload {
   skillName: string;
   fromUser: string;
   timestamp: Date;
+}
+
+/**
+ * Расширенный WebSocket-клиент с данными авторизации
+ */
+export interface WsSocket extends Socket {
+  data: {
+    user?: User;
+  };
 }
