@@ -130,7 +130,11 @@ export const ApiUpdatePassword = () =>
     }),
     ApiResponse({
       status: 400,
-      description: 'Некорректный текущий пароль или новый пароль',
+      description: 'Некорректный новый пароль',
+    }),
+    ApiResponse({
+      status: 401,
+      description: 'Пользователь не авторизован',
     }),
     ApiResponse({
       status: 404,
@@ -138,7 +142,7 @@ export const ApiUpdatePassword = () =>
     }),
   );
 
-// GET /by-skill/:id — пользователи по навыку
+// GET /by-skill/:id
 export const ApiFindUsersBySkill = () =>
   applyDecorators(
     ApiOperation({ summary: 'Найти пользователей с указанным навыком' }),
@@ -174,6 +178,10 @@ export const ApiFindUserById = () =>
       status: 200,
       description: 'Пользователь найден',
       type: User,
+    }),
+    ApiResponse({
+      status: 401,
+      description: 'Пользователь не авторизован',
     }),
     ApiResponse({
       status: 404,
