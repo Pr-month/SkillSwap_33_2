@@ -1,3 +1,4 @@
+import { UPLOAD_PATH } from './file.constants';
 import {
   validateFile,
   generateRandomFilename,
@@ -33,7 +34,7 @@ describe('File Utils', () => {
 
   describe('ensureUploadDirectoryExists', () => {
     it('should not throw', () => {
-      expect(() => ensureUploadDirectoryExists('./test-dir')).not.toThrow();
+      expect(() => ensureUploadDirectoryExists(UPLOAD_PATH)).not.toThrow();
     });
   });
 });
