@@ -1,4 +1,3 @@
-import { IsDefined, IsNotEmpty, Length } from 'class-validator';
 import { Skill } from '../../skills/entities/skill.entity';
 import { User } from '../../users/entities/user.entity';
 import {
