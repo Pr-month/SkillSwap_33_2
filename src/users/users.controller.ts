@@ -15,12 +15,23 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import logger from 'src/config/winston.logger';
+import {
+  ApiFindUserById,
+  ApiFindUsers,
+  ApiFindUsersBySkill,
+  ApiGetMe,
+  ApiUpdateMe,
+  ApiUpdatePassword,
+  ApiUsersTag,
+} from 'src/swagger/swagger.users';
 
+@ApiUsersTag()
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
+  @ApiFindUsers()
   findAll(
     @Query('page') page: string = '1',
     @Query('limit') limit: string = '10',
@@ -44,18 +55,21 @@ export class UsersController {
 
   @Get('me')
   @UseGuards(JwtAccessGuard)
+  @ApiGetMe()
   getMe(@Req() req: TAuthResponse) {
     return this.usersService.getCurrentUser(req.user.sub);
   }
 
   @Patch('me')
   @UseGuards(JwtAccessGuard)
+  @ApiUpdateMe()
   updateMe(@Req() req: TAuthResponse, @Body() updateMeDto: UpdateUserDto) {
     return this.usersService.updateCurrentUser(req.user.sub, updateMeDto);
   }
 
   @Patch('me/password')
   @UseGuards(JwtAccessGuard)
+  @ApiUpdatePassword()
   updatePassword(
     @Req() req: TAuthResponse,
     @Body() updatePassword: UpdatePasswordDto,
@@ -64,12 +78,14 @@ export class UsersController {
   }
 
   @Get('by-skill/:id')
+  @ApiFindUsersBySkill()
   findUsersBySimilarSkill(@Param('id') skillId: string) {
     return this.usersService.findUsersBySimilarSkill(skillId);
   }
 
   @Get(':id')
   @UseGuards(JwtAccessGuard)
+  @ApiFindUserById()
   async findUser(@Param('id') id: string) {
     try {
       const user = await this.usersService.findUserById(id);
