@@ -3,8 +3,10 @@ import { ConfigType, registerAs } from '@nestjs/config';
 import { DataSource, DataSourceOptions } from 'typeorm';
 import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions';
 
+// Загружаем .env файл в зависимости от окружения
+const envFile = process.env.NODE_ENV === 'test' ? '.env.test.local' : '.env';
 // Загружаем переменные из .env, чтобы они были доступны классу DataSource
-dotenvConfig({ path: '.env' });
+dotenvConfig({ path: envFile });
 
 export const dbConfig = registerAs(
   'DB_CONFIG',
@@ -18,7 +20,7 @@ export const dbConfig = registerAs(
     entities: [__dirname + '/../**/*.entity{.ts,.js}'],
     // Путь для миграций
     migrations: ['dist/database/migrations/*.js'],
-    synchronize: process.env.NODE_ENV !== 'production',
+    synchronize: process.env.POSTGRES_SYNCHRONIZE === 'true',
   }),
 );
 

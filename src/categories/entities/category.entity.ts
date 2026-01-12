@@ -1,6 +1,6 @@
 import { IsDefined, IsNotEmpty, Length } from 'class-validator';
-import { Skill } from 'src/skills/entities/skill.entity';
-import { User } from 'src/users/entities/user.entity';
+import { Skill } from '../../skills/entities/skill.entity';
+import { User } from '../../users/entities/user.entity';
 import {
   Column,
   Entity,

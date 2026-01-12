@@ -1,19 +1,21 @@
+import logger from '../config/winston.logger';
 import {
-  Injectable,
-  ConflictException,
-  NotFoundException,
   BadRequestException,
+  ConflictException,
+  ForbiddenException,
   Inject,
+  Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { RegisterDto } from 'src/auth/dto/register-user.dto';
+import * as bcrypt from 'bcrypt';
+import { RegisterDto } from '../auth/dto/register-user.dto';
+import { appConfig, AppConfig } from '../config/app.config';
+import { Skill } from '../skills/entities/skill.entity';
 import { Repository } from 'typeorm';
+import { UpdatePasswordDto } from './dto/update-password.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
-import { GenderOption, UserRole } from './enums';
-import * as bcrypt from 'bcrypt';
-import { appConfig, AppConfig } from 'src/config/app.config';
-import { UpdatePasswordDto } from './dto/update-password.dto';
 
 @Injectable()
 export class UsersService {
@@ -22,6 +24,8 @@ export class UsersService {
     private appConfig: AppConfig,
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
+    @InjectRepository(Skill)
+    private readonly skillsRepository: Repository<Skill>,
   ) {}
 
   async findAll(): Promise<User[]> {
@@ -60,9 +64,15 @@ export class UsersService {
   }
 
   async findUserById(id: string) {
-    return await this.usersRepository.findOneOrFail({
-      where: { id },
-    });
+    try {
+      const user = await this.usersRepository.findOneOrFail({ where: { id } });
+      logger.info('User found', { id });
+      return user;
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      logger.error('User not found', { id, error: errorMsg });
+      throw error;
+    }
   }
 
   async getCurrentUser(id: string) {
@@ -109,5 +119,93 @@ export class UsersService {
     );
 
     return this.usersRepository.save({ ...user, password: hashedPassword });
+  }
+
+  async findUsersBySimilarSkill(skillId: string) {
+    const skill = await this.skillsRepository.findOne({
+      where: { id: skillId },
+      relations: ['category'],
+    });
+
+    if (!skill) {
+      throw new NotFoundException('Skill not found');
+    }
+
+    const categoryId = skill.category.id;
+
+    const users = await this.usersRepository
+      .createQueryBuilder('user')
+      .leftJoin('user.skills', 'skill')
+      .leftJoin('skill.category', 'skillCategory')
+      .leftJoin('user.wantToLearn', 'wantToLearn')
+      .where('skillCategory.id = :categoryId', { categoryId })
+      .orWhere('wantToLearn.id = :categoryId', { categoryId })
+      .distinct(true)
+      .take(10)
+      .getMany();
+
+    return users;
+  }
+
+  async findAllFiltered({
+    page = 1,
+    limit = 10,
+    name,
+    email,
+    city,
+    role,
+    gender,
+  }: {
+    page?: number;
+    limit?: number;
+    name?: string;
+    email?: string;
+    city?: string;
+    role?: string;
+    gender?: string;
+  }) {
+    const query = this.usersRepository.createQueryBuilder('user');
+    if (name) {
+      query.andWhere('LOWER(user.name) LIKE LOWER(:name)', {
+        name: `%${name}%`,
+      });
+    }
+    if (email) {
+      query.andWhere('LOWER(user.email) LIKE LOWER(:email)', {
+        email: `%${email}%`,
+      });
+    }
+    if (city) {
+      query.andWhere('LOWER(user.city) LIKE LOWER(:city)', {
+        city: `%${city}%`,
+      });
+    }
+    if (role) {
+      query.andWhere('user.role = :role', {
+        role,
+      });
+    }
+    if (gender) {
+      query.andWhere('user.gender = :gender', {
+        gender,
+      });
+    }
+    const [users, total] = await query
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+    const lastPage = Math.ceil(total / limit);
+    if (page > lastPage && total !== 0) {
+      throw new ForbiddenException('Page number exceeds last page');
+    }
+    return {
+      data: users,
+      meta: {
+        total,
+        page,
+        lastPage,
+        limit,
+      },
+    };
   }
 }

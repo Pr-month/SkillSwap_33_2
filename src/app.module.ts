@@ -1,4 +1,9 @@
-import { Module } from '@nestjs/common';
+import {
+  Module,
+  NestModule,
+  MiddlewareConsumer,
+  RequestMethod,
+} from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
@@ -15,6 +20,9 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { SkillsModule } from './skills/skills.module';
 import { RequestsModule } from './requests/requests.module';
+import { NotificationModule } from './notification/notification.module';
+import { HelmetMiddleware } from './common/middleware/helmet.middleware';
+import { CsrfMiddleware } from './common/middleware/csrf.middleware';
 
 @Module({
   imports: [
@@ -35,9 +43,10 @@ import { RequestsModule } from './requests/requests.module';
     }),
     TypeOrmModule.forRootAsync({
       inject: [dbConfig.KEY],
-      useFactory: (config: DatabaseConfig): DatabaseConfig => {
-        return config;
-      },
+      useFactory: (config: DatabaseConfig) => ({
+        ...config,
+        autoLoadEntities: true,
+      }),
     }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'public'),
@@ -49,8 +58,16 @@ import { RequestsModule } from './requests/requests.module';
     FilesModule,
     SkillsModule,
     RequestsModule,
+    NotificationModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    // Применяем обе middleware ко всем роутам
+    consumer
+      .apply(HelmetMiddleware, CsrfMiddleware)
+      .forRoutes({ path: '*', method: RequestMethod.ALL });
+  }
+}
