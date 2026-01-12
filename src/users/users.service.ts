@@ -9,14 +9,13 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
-import { RegisterDto } from 'src/auth/dto/register-user.dto';
-import { appConfig, AppConfig } from 'src/config/app.config';
-import { Skill } from 'src/skills/entities/skill.entity';
+import { RegisterDto } from '../auth/dto/register-user.dto';
+import { appConfig, AppConfig } from '../config/app.config';
+import { Skill } from '../skills/entities/skill.entity';
 import { Repository } from 'typeorm';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
-
 
 @Injectable()
 export class UsersService {
@@ -147,7 +146,7 @@ export class UsersService {
 
     return users;
   }
-  
+
   async findAllFiltered({
     page = 1,
     limit = 10,
