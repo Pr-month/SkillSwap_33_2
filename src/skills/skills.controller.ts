@@ -33,12 +33,16 @@ export class SkillsController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
+    // данный метод вызывает this.skillsService.findOne(+id),
+    // но в сервисе findOne ожидает number, а у нас ID навыка - это string (UUID). Это может быть проблемой
     return this.skillsService.findOne(+id);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.skillsService.remove(+id);
+  @UseGuards(JwtAccessGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async remove(@Param('id') id: string, @Req() req: TAuthResponse) {
+    await this.skillsService.remove(req.user.sub, id);
   }
 
   @Get()
