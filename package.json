@@ -35,7 +35,7 @@
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/platform-socket.io": "^11.1.11",
     "@nestjs/serve-static": "^5.0.4",
-    "@nestjs/swagger": "^11.2.3",
+    "@nestjs/swagger": "^11.2.4",
     "@nestjs/typeorm": "^11.0.0",
     "@nestjs/websockets": "^11.1.11",
     "@types/winston": "^2.4.4",
@@ -52,6 +52,7 @@
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
     "socket.io": "^4.8.3",
+    "swagger-ui-express": "^5.0.1",
     "typeorm": "^0.3.28",
     "winston": "^3.19.0"
   },
