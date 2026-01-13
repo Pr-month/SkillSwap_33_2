@@ -6,37 +6,10 @@ import { ConfigService } from '@nestjs/config';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { RefreshToken } from '../users/entities/refreshToken.entity';
 import { User } from '../users/entities/user.entity';
-
-enum UserRole {
-  USER = 'user',
-  ADMIN = 'admin',
-}
-
-enum GenderOption {
-  MALE = 'male',
-  FEMALE = 'female',
-}
-
-interface RegisterDto {
-  email: string;
-  password: string;
-  name: string;
-  birthdate: string;
-  gender: GenderOption;
-  city: string;
-  about: string;
-}
-
-interface LoginDto {
-  email: string;
-  password: string;
-}
-
-interface JwtPayload {
-  sub: string;
-  email: string;
-  role: string;
-}
+import { UserRole, GenderOption } from '../users/enums';
+import { RegisterDto } from '../auth/dto/register-user.dto';
+import { LoginDto } from '../auth/dto/login.dto';
+import { TJwtPayload } from '../auth/types';
 
 type UsersServiceMock = {
   register: jest.Mock<Promise<User>, [RegisterDto]>;
@@ -47,7 +20,7 @@ type UsersServiceMock = {
 type JwtServiceMock = {
   signAsync: jest.Mock<
     Promise<string>,
-    [JwtPayload, { secret: string; expiresIn: string }]
+    [TJwtPayload, { secret: string; expiresIn: string }]
   >;
 };
 
@@ -82,7 +55,7 @@ describe('AuthService', () => {
     jwtServiceMock = {
       signAsync: jest.fn<
         Promise<string>,
-        [JwtPayload, { secret: string; expiresIn: string }]
+        [TJwtPayload, { secret: string; expiresIn: string }]
       >(),
     };
 
