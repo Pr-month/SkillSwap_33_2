@@ -27,9 +27,8 @@ describe('Notification E2E (WebSocket)', () => {
 
     httpServer = app.getHttpServer() as Server;
 
-    const config = wsConfig();
-    const wsPort = Number(config.port) || 4000;
-    wsUrl = `http://localhost:${wsPort}`;
+    const WS_PORT = Number(wsConfig().port);
+    wsUrl = `http://localhost:${WS_PORT}`;
   });
 
   afterAll(async () => {
@@ -126,7 +125,11 @@ describe('Notification E2E (WebSocket)', () => {
       request(httpServer)
         .post('/requests')
         .set('Authorization', `Bearer ${senderToken}`)
-        .send({ skillId })
+        .send({
+          receiverId: recipientId,
+          offeredSkillId,
+          requestedSkillId,
+        })
         .expect(201),
     ]);
 
