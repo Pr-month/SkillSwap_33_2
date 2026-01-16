@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { JwtConfig } from '../config/jwt.config';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { User } from '../users/entities/user.entity';
@@ -8,7 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UsersService } from '../users/users.service';
 import { RegisterDto } from '../auth/dto/register-user.dto';
-import { UserRole } from 'src/users/enums';
+import { UserRole } from '../users/enums';
 import { LoginDto } from './dto/login.dto';
 import { TJwtPayload, Tokens } from './types';
 
