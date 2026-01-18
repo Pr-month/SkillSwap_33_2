@@ -3,9 +3,11 @@ import {
   ForbiddenException,
   Injectable,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { deleteFilesByUrls } from '../files/file.utils';
 import { CreateSkillDto } from './dto/create-skill.dto';
 import { UpdateSkillDto } from './dto/update-skill.dto';
 import { Skill } from './entities/skill.entity';
@@ -59,8 +61,34 @@ export class SkillsService {
     return `This action returns a #${id} skill`;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} skill`;
+  async remove(userId: string, skillId: string): Promise<void> {
+    // Находим навык с владельцем
+    const skill = await this.skillsRepository.findOne({
+      where: { id: skillId },
+      relations: ['owner'],
+    });
+
+    if (!skill) {
+      throw new NotFoundException('Навык не найден');
+    }
+
+    // Проверяем права доступа
+    if (skill.owner.id !== userId) {
+      throw new ForbiddenException('У вас нет прав для удаления этого навыка');
+    }
+
+    try {
+      // Удаляем изображения из файловой системы
+      if (skill.images && skill.images.length > 0) {
+        deleteFilesByUrls(skill.images);
+      }
+
+      // Удаляем навык из БД
+      await this.skillsRepository.remove(skill);
+    } catch (error) {
+      console.error('Ошибка при удалении навыка:', error);
+      throw new BadRequestException('Не удалось удалить навык');
+    }
   }
 
   async findSkills(paginationOptions: PaginationOptionsDto) {
@@ -92,6 +120,22 @@ export class SkillsService {
     }
     if (skill.owner.id !== userId) {
       throw new ForbiddenException('Forbidden');
+    }
+    // Проверяем, передаются ли изображения в обновлении
+    // Если поле images присутствует в updateSkill (даже если это пустой массив)
+    if ('images' in updateSkill) {
+      const oldImages = skill.images || [];
+      const newImages = updateSkill.images || [];
+
+      // Находим изображения, которые нужно удалить (есть в старых, но нет в новых)
+      const imagesToDelete = oldImages.filter(
+        (oldImage) => !newImages.includes(oldImage),
+      );
+
+      // Удаляем старые изображения, которые больше не используются
+      if (imagesToDelete.length > 0) {
+        deleteFilesByUrls(imagesToDelete);
+      }
     }
     return this.skillsRepository.save({ ...skill, ...updateSkill });
   }
@@ -131,7 +175,7 @@ export class SkillsService {
     // Сохраняем изменения
     return await this.skillsRepository.save(skill);
   }
-  
+
   async removeFromFavorites(skillId: string, userId: string): Promise<Skill> {
     // Находим навык с загруженными interestedUser
     const skill = await this.skillsRepository.findOne({
