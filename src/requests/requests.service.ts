@@ -38,41 +38,23 @@ export class RequestsService {
     return request;
   }
 
-  // Проверка является ли пользователь админом
-  // async isUserAdmin(userId: string): Promise<boolean> {
-  //   const user = await this.usersRepository.findOne({
-  //     where: { id: userId },
-  //     select: ['id', 'role'],
-  //   });
-  //   return user?.role === 'admin';
-  // }
-
   // Создать заявку
   async create(
     createRequestDto: CreateRequestDto,
     senderId: string,
   ): Promise<Request> {
-    // Проверка: нельзя отправлять заявку самому себе
-    if (createRequestDto.receiverId === senderId) {
-      throw new BadRequestException('Нельзя отправлять заявку самому себе');
-    }
-
-    // Проверка существования получателя
-    const receiver = await this.usersRepository.findOne({
-      where: { id: createRequestDto.receiverId },
-    });
-    if (!receiver) {
-      throw new NotFoundException('Получатель не найден');
-    }
+    // Извлекаем ID навыков из DTO (объекты SkillReferenceDto)
+    const offeredSkillId = createRequestDto.offeredSkill.id;
+    const requestedSkillId = createRequestDto.requestedSkill.id;
 
     // Проверка существования навыков
     const [offeredSkill, requestedSkill] = await Promise.all([
       this.skillsRepository.findOne({
-        where: { id: createRequestDto.offeredSkillId },
+        where: { id: offeredSkillId },
         relations: ['owner'],
       }),
       this.skillsRepository.findOne({
-        where: { id: createRequestDto.requestedSkillId },
+        where: { id: requestedSkillId },
         relations: ['owner'],
       }),
     ]);
@@ -84,15 +66,37 @@ export class RequestsService {
       throw new NotFoundException('Запрашиваемый навык не найден');
     }
 
+    const receiverId = requestedSkill.owner.id;
+
+    // Проверка существования получателя
+    const receiver = await this.usersRepository.findOne({
+      where: { id: receiverId },
+    });
+    if (!receiver) {
+      throw new NotFoundException('Получатель не найден');
+    }
+
     // Проверка владения навыками
     if (offeredSkill.owner.id !== senderId) {
       throw new ForbiddenException('Вы не владеете предлагаемым навыком');
     }
 
-    if (requestedSkill.owner.id !== createRequestDto.receiverId) {
+    const receiverHasSkill = await this.skillsRepository.findOne({
+      where: {
+        id: requestedSkillId,
+        owner: { id: receiverId },
+      },
+    });
+
+    if (!receiverHasSkill) {
       throw new BadRequestException(
         'Получатель не владеет запрашиваемым навыком',
       );
+    }
+
+    // Проверка: нельзя отправлять заявку самому себе
+    if (receiverId === senderId) {
+      throw new BadRequestException('Нельзя отправлять заявку самому себе');
     }
 
     // Проверка дубликатов активных заявок
@@ -100,11 +104,11 @@ export class RequestsService {
       where: [
         {
           senderId,
-          receiverId: createRequestDto.receiverId,
+          receiverId,
           status: In([RequestStatus.PENDING, RequestStatus.ACCEPTED]),
         },
         {
-          senderId: createRequestDto.receiverId,
+          senderId: receiverId,
           receiverId: senderId,
           status: In([RequestStatus.PENDING, RequestStatus.ACCEPTED]),
         },
@@ -117,8 +121,10 @@ export class RequestsService {
 
     // Создание заявки
     const request = this.requestsRepository.create({
-      ...createRequestDto,
-      senderId,
+      sender: { id: senderId },
+      receiver: { id: receiverId },
+      offeredSkill: { id: offeredSkillId },
+      requestedSkill: { id: requestedSkillId },
       status: RequestStatus.PENDING,
       isRead: false,
     });
