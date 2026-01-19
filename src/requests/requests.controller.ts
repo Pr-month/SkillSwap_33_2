@@ -6,37 +6,72 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
+  Request,
 } from '@nestjs/common';
 import { RequestsService } from './requests.service';
 import { CreateRequestDto } from './dto/create-request.dto';
 import { UpdateRequestDto } from './dto/update-request.dto';
+import { JwtAccessGuard } from '../auth/guards/jwt-access.guard';
+import { TAuthResponse } from 'src/auth/types';
+import { UserRole } from 'src/users/enums';
 
 @Controller('requests')
+@UseGuards(JwtAccessGuard)
 export class RequestsController {
   constructor(private readonly requestsService: RequestsService) {}
 
   @Post()
-  create(@Body() createRequestDto: CreateRequestDto) {
-    return this.requestsService.create(createRequestDto);
+  create(
+    @Body() createRequestDto: CreateRequestDto,
+    @Request() req: TAuthResponse,
+  ) {
+    return this.requestsService.create(createRequestDto, req.user.sub);
   }
 
-  @Get()
-  findAll() {
-    return this.requestsService.findAll();
+  @Get('incoming')
+  findIncoming(@Request() req: TAuthResponse) {
+    return this.requestsService.findIncoming(req.user.sub);
+  }
+
+  @Get('outgoing')
+  findOutgoing(@Request() req: TAuthResponse) {
+    return this.requestsService.findOutgoing(req.user.sub);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.requestsService.findOne(+id);
+  findOne(@Param('id') id: string, @Request() req: TAuthResponse) {
+    // Используем checkUserAccess для проверки прав
+    return this.requestsService.checkUserAccess(id, req.user.sub);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateRequestDto: UpdateRequestDto) {
-    return this.requestsService.update(+id, updateRequestDto);
+  @Patch(':id/read')
+  markAsRead(@Param('id') id: string, @Request() req: TAuthResponse) {
+    return this.requestsService.markAsRead(id, req.user.sub);
+  }
+
+  @Patch(':id/accept')
+  accept(@Param('id') id: string, @Request() req: TAuthResponse) {
+    return this.requestsService.accept(id, req.user.sub);
+  }
+
+  @Patch(':id/reject')
+  reject(@Param('id') id: string, @Request() req: TAuthResponse) {
+    return this.requestsService.reject(id, req.user.sub);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.requestsService.remove(+id);
+  remove(@Param('id') id: string, @Request() req: TAuthResponse) {
+    const isAdmin = req.user.role === UserRole.ADMIN;
+    return this.requestsService.remove(id, req.user.sub, isAdmin);
+  }
+
+  @Patch(':id')
+  update(
+    @Param('id') id: string,
+    @Body() updateRequestDto: UpdateRequestDto,
+    @Request() req: TAuthResponse,
+  ) {
+    return this.requestsService.update(id, updateRequestDto, req.user.sub);
   }
 }
