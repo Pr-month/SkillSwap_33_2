@@ -9,5 +9,6 @@ import { wsConfig } from '../config/ws.config';
 @Module({
   imports: [ConfigModule.forFeature(wsConfig), AuthModule, UsersModule],
   providers: [NotificationsGateway, WsJwtGuard],
+  exports: [NotificationsGateway],
 })
 export class NotificationModule {}
