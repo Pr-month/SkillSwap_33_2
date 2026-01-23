@@ -18,6 +18,7 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "npm run db:drop:test && npm run db:seed:test && cross-env NODE_ENV=test jest --config ./test/jest-e2e.json",
+    "test:e2e:users": "npm run db:drop:test && npm run db:seed:test && cross-env NODE_ENV=test jest --config ./test/jest-e2e.json test/users.e2e-spec.ts",
     "test:skill": "jest src/skills/skills.service.spec.ts",
     "seed:users": "node -r ts-node/register src/seeding/seed-users.ts",
     "seed:categories": "node -r ts-node/register src/seeding/seed-categories.ts",
