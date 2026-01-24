@@ -1,0 +1,20 @@
+#!/bin/sh
+
+current_branch=$(git rev-parse --abbrev-ref HEAD)
+
+valid_branch_regex="^(feature|bugfix|refactor|hotfix|fix)\/([a-z0-9-]+)$"
+
+if [[ "$current_branch" != "main" && "$current_branch" != "master" && "$current_branch" != "dev" ]]; then
+  if ! [[ "$current_branch" =~ $valid_branch_regex ]]; then
+    echo "❌ Неправильное имя ветки '$current_branch'."
+    echo "👉 Имя ветки должно соответствовать одному из паттернов:"
+    echo "   - feature/some-feature"
+    echo "   - bugfix/some-bug-fix"
+    echo "   - refactor/some-refactor"
+    echo "   - hotfix/some-hotfix"
+    echo "   - fix/some-fix"
+    exit 1 
+  fi
+fi
+
+exit 0
