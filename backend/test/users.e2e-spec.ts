@@ -1,11 +1,18 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
+import {
+  ClassSerializerInterceptor,
+  INestApplication,
+  ValidationPipe,
+} from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { JwtService, JwtModule } from '@nestjs/jwt';
 import { DataSource } from 'typeorm';
 import { User } from '../src/users/entities/user.entity';
 import { ResGetUsersDto } from '../src/users/dto/res-get-users.dto';
+import { Reflector } from '@nestjs/core';
+import { AllExceptionsFilter } from '../src/common/all-exception.filter';
+import { v4 as uuidv4 } from 'uuid';
 
 describe('UsersController (e2e)', () => {
   let app: INestApplication;
@@ -24,13 +31,23 @@ describe('UsersController (e2e)', () => {
           signOptions: { expiresIn: '1h' },
         }),
       ],
-    })
-      .overrideProvider('io-adapter')
-      .useValue(null)
-      .compile();
+    }).compile();
 
     app = moduleFixture.createNestApplication();
     app.setGlobalPrefix('api');
+
+    app.useGlobalInterceptors(
+      new ClassSerializerInterceptor(app.get(Reflector)),
+    ); //Убираем поля, которые не должны возвращаться
+    app.useGlobalPipes(
+      //Валидация
+      new ValidationPipe({
+        whitelist: true, // Удаляет поля, которых нет в DTO
+        forbidNonWhitelisted: true, // Ошибка, если прислали лишнее поле
+        transform: true, // Автоматическая типизация данных
+      }),
+    );
+    app.useGlobalFilters(new AllExceptionsFilter());
     await app.init();
 
     dataSource = moduleFixture.get<DataSource>(DataSource);
@@ -176,11 +193,18 @@ describe('UsersController (e2e)', () => {
       const updateData = {
         newPassword: 'UrzogGroDrollForever2026!',
       };
-      return request(app.getHttpServer())
+
+      console.log('Отправляемые данные для смены пароля:', updateData);
+
+      const response = await request(app.getHttpServer())
         .patch('/api/users/me/password')
         .set('Authorization', `Bearer ${accessToken}`)
-        .send(updateData)
-        .expect(200);
+        .send(updateData);
+
+      console.log('Статус ответа:', response.status);
+      console.log('Тело ответа:', response.body);
+
+      expect(response.status).toBe(200);
     });
 
     it('PATCH /users/me/password должен вернуть 400 для некорректных данных', async () => {
@@ -207,8 +231,9 @@ describe('UsersController (e2e)', () => {
     });
 
     it('PATCH /users/me/password должен вернуть 404 если пользователь не найден', async () => {
-      const nonExistentUserId = '00000000000000000000000000000000';
-      const tokenForNonExistentUser = jwtService.sign({
+      const nonExistentUserId = uuidv4();
+
+      const nonExistentUserToken = jwtService.sign({
         sub: nonExistentUserId,
         email: 'nonexistent@example.com',
         role: 'user',
@@ -220,7 +245,7 @@ describe('UsersController (e2e)', () => {
 
       return request(app.getHttpServer())
         .patch('/api/users/me/password')
-        .set('Authorization', `Bearer ${tokenForNonExistentUser}`)
+        .set('Authorization', `Bearer ${nonExistentUserToken}`)
         .send(updateData)
         .expect(404);
     });
