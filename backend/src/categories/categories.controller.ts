@@ -19,7 +19,16 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtAccessGuard } from 'src/auth/guards/jwt-access.guard';
 import { UserRole } from 'src/users/enums';
+import {
+  ApiCategoriesTag,
+  ApiCreateCategory,
+  ApiFindCategories,
+  ApiFindOneCategory,
+  ApiRemoveCategory,
+  ApiUpdateCategory,
+} from '../swagger';
 
+@ApiCategoriesTag()
 @Controller('categories')
 export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
@@ -27,11 +36,13 @@ export class CategoriesController {
   @Post()
   @UseGuards(JwtAccessGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
+  @ApiCreateCategory()
   create(@Body() createCategoryDto: CreateCategoryDto) {
     return this.categoriesService.create(createCategoryDto);
   }
 
   @Get()
+  @ApiFindCategories()
   findAll(
     @Query('includeAll', new DefaultValuePipe(false), ParseBoolPipe)
     includeAll?: boolean,
@@ -50,6 +61,7 @@ export class CategoriesController {
   }
 
   @Get(':id')
+  @ApiFindOneCategory()
   findOne(@Param('id') id: string) {
     return this.categoriesService.findOne(id);
   }
@@ -57,6 +69,7 @@ export class CategoriesController {
   @Patch(':id')
   @UseGuards(JwtAccessGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
+  @ApiUpdateCategory()
   update(
     @Param('id') id: string,
     @Body() updateCategoryDto: UpdateCategoryDto,
@@ -67,6 +80,7 @@ export class CategoriesController {
   @Delete(':id')
   @UseGuards(JwtAccessGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
+  @ApiRemoveCategory()
   remove(@Param('id') id: string) {
     return this.categoriesService.remove(id);
   }
