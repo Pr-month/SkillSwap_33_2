@@ -159,7 +159,7 @@ describe('UsersController (e2e)', () => {
   describe('PATCH запросы', () => {
     it('PATCH /users/me должен обновить текущего пользователя', async () => {
       const testUser = testUsers[0];
-      const updateData = { name: 'Updated Name' };
+      const updateData = { name: 'Updated Name', birthdate: '1990-01-01' };
       const response = await request(app.getHttpServer())
         .patch('/api/users/me')
         .set('Authorization', `Bearer ${accessToken}`)
@@ -169,6 +169,7 @@ describe('UsersController (e2e)', () => {
       const updatedUser = response.body as User;
       console.log('Обновленный пользователь:', updatedUser);
       expect(updatedUser.name).toBe(updateData.name);
+      expect(updatedUser.birthdate).toBe(updateData.birthdate);
       expect(updatedUser.id).toBe(testUser.id);
     });
 
@@ -200,9 +201,6 @@ describe('UsersController (e2e)', () => {
         .patch('/api/users/me/password')
         .set('Authorization', `Bearer ${accessToken}`)
         .send(updateData);
-
-      console.log('Статус ответа:', response.status);
-      console.log('Тело ответа:', response.body);
 
       expect(response.status).toBe(200);
     });

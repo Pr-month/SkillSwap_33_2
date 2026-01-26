@@ -58,7 +58,7 @@ import { CsrfMiddleware } from './common/middleware/csrf.middleware';
     FilesModule,
     SkillsModule,
     RequestsModule,
-    NotificationModule,
+    ...(process.env.NODE_ENV !== 'test' ? [NotificationModule] : []),
   ],
   controllers: [AppController],
   providers: [AppService],

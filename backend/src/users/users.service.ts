@@ -92,7 +92,11 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
 
-    Object.assign(user, updateData);
+    const cleanUpdateData = Object.fromEntries(
+      Object.entries(updateData).filter(([_, value]) => value !== undefined),
+    );
+
+    Object.assign(user, cleanUpdateData);
 
     return this.usersRepository.save(user);
   }
