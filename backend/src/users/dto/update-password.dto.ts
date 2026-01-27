@@ -1,20 +1,18 @@
-import { PickType } from '@nestjs/mapped-types';
-import { CreateUserDto } from './create-user.dto';
-import { IsString, MinLength, ValidateIf } from 'class-validator';
+import { IsString, MinLength, Matches } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
 
-export class UpdatePasswordDto extends PickType(CreateUserDto, ['password']) {
+export class UpdatePasswordDto {
+  @ApiProperty({ description: 'Новый пароль' })
   @IsString()
-  @MinLength(8, {
-    message: 'Пароль должен содержать минимум 8 символов',
+  @MinLength(8, { message: 'Пароль должен содержать минимум 8 символов' })
+  @Matches(/(?=.*[A-Z])/, {
+    message: 'Пароль должен содержать хотя бы одну заглавную букву',
   })
-  @ValidateIf((dto) => /[A-Z]/.test(dto.newPassword), {
-    message: 'Добавьте хотя бы одну заглавную букву.',
+  @Matches(/(?=.*\d)/, {
+    message: 'Пароль должен содержать хотя бы одну цифру',
   })
-  @ValidateIf((dto) => /\d/.test(dto.newPassword), {
-    message: 'Добавьте хотя бы одну цифру.',
-  })
-  @ValidateIf((dto) => /[!@#$%^&*(),.?":{}|<>]/.test(dto.newPassword), {
-    message: 'Добавьте хотя бы один спецсимвол.',
+  @Matches(/(?=.*[!@#$%^&*(),.?":{}|<>])/, {
+    message: 'Пароль должен содержать хотя бы один спецсимвол',
   })
   newPassword: string;
 }

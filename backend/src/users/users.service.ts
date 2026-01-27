@@ -1,6 +1,5 @@
 import logger from '../config/winston.logger';
 import {
-  BadRequestException,
   ConflictException,
   ForbiddenException,
   Inject,
@@ -93,32 +92,29 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
 
-    Object.assign(user, updateData);
+    const cleanUpdateData = Object.fromEntries(
+      Object.entries(updateData).filter(([_, value]) => value !== undefined),
+    );
+
+    Object.assign(user, cleanUpdateData);
 
     return this.usersRepository.save(user);
   }
 
   async updatePassword(id: string, updatePassword: UpdatePasswordDto) {
     const user = await this.usersRepository.findOne({ where: { id } });
+
     if (!user) {
       throw new NotFoundException('User not found');
     }
 
-    const hashedOldPassword = await bcrypt.hash(
-      updatePassword.password,
-      this.appConfig.hashSalt,
-    );
-
-    if (user.password !== hashedOldPassword) {
-      throw new BadRequestException('Verification failed');
-    }
-
-    const hashedPassword = await bcrypt.hash(
+    const hashedNewPassword = await bcrypt.hash(
       updatePassword.newPassword,
       this.appConfig.hashSalt,
     );
 
-    return this.usersRepository.save({ ...user, password: hashedPassword });
+    user.password = hashedNewPassword;
+    return this.usersRepository.save(user);
   }
 
   async findUsersBySimilarSkill(skillId: string) {

@@ -2,6 +2,7 @@ import { AppDataSource } from '../config/db.config';
 import { User } from '../users/entities/user.entity';
 import { GenderOption, UserRole } from '../users/enums';
 import { usersData } from './usersData';
+import * as bcrypt from 'bcrypt';
 
 async function seedUsers() {
   console.log('🚀 Запуск сидирования 50 пользователей...');
@@ -77,7 +78,10 @@ async function seedUsers() {
       const email = `${emailBase}@skillswap.test`;
 
       // Устанавливаем пароль пароль (email)
-      const setPassword = email;
+      const setPassword = await bcrypt.hash(
+        email,
+        parseInt(process.env.HASH_SALT || '10'),
+      );
 
       // Роль
       const role = userData._id === 'user_001' ? UserRole.ADMIN : UserRole.USER;
