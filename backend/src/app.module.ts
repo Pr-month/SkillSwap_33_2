@@ -65,9 +65,14 @@ import { CsrfMiddleware } from './common/middleware/csrf.middleware';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    // Применяем обе middleware ко всем роутам
-    consumer
-      .apply(HelmetMiddleware, CsrfMiddleware)
-      .forRoutes({ path: '*', method: RequestMethod.ALL });
+    if (process.env.NODE_ENV === 'test') {
+      consumer
+        .apply(HelmetMiddleware)
+        .forRoutes({ path: '*', method: RequestMethod.ALL });
+    } else {
+      consumer
+        .apply(HelmetMiddleware, CsrfMiddleware)
+        .forRoutes({ path: '*', method: RequestMethod.ALL });
+    }
   }
 }
