@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { User } from '../users/entities/user.entity';
@@ -68,7 +68,7 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new NotFoundException(
+      throw new UnauthorizedException(
         `Пользователь с email ${loginDto.email} не найден`,
       );
     }
