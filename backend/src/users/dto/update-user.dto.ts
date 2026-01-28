@@ -4,12 +4,8 @@ import {
   IsOptional,
   IsString,
   MinLength,
-  ValidateNested,
 } from 'class-validator';
 import { GenderOption, UserRole } from '../enums';
-import { Type } from 'class-transformer';
-import { UpdateSkillDto } from 'src/skills/dto/update-skill.dto';
-import { UpdateCategoryDto } from 'src/categories/dto/update-category.dto';
 
 export class UpdateUserDto {
   @IsOptional()
@@ -37,23 +33,13 @@ export class UpdateUserDto {
   gender?: GenderOption;
 
   @IsOptional()
+  @IsString()
   avatar?: string;
 
   @IsOptional()
   role?: UserRole;
 
   @IsOptional()
-  @ValidateNested({ each: true })
-  @Type(() => UpdateSkillDto)
-  skills?: UpdateSkillDto[];
-
-  @IsOptional()
-  @ValidateNested({ each: true })
-  @Type(() => UpdateCategoryDto)
-  wantToLearn?: UpdateCategoryDto[];
-
-  @IsOptional()
-  @ValidateNested({ each: true })
-  @Type(() => UpdateSkillDto)
-  favoriteSkills?: UpdateSkillDto[];
+  @IsString()
+  wantToLearn?: string;
 }
