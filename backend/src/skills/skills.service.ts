@@ -110,6 +110,7 @@ export class SkillsService {
     const skill = await this.skillsRepository.findOne({
       relations: {
         owner: true,
+        category: true,
       },
       where: {
         id: skillId,
@@ -120,6 +121,21 @@ export class SkillsService {
     }
     if (skill.owner.id !== userId) {
       throw new ForbiddenException('Forbidden');
+    }
+    // Поиск категории по ID
+    if (updateSkill.categoryId) {
+      const category = await this.categoriesRepository.findOne({
+        where: { id: updateSkill.categoryId },
+      });
+
+      if (!category) {
+        throw new NotFoundException(
+          `Категория с ID ${updateSkill.categoryId} не найдена`,
+        );
+      }
+
+      skill.category = category;
+      delete updateSkill.categoryId;
     }
     // Проверяем, передаются ли изображения в обновлении
     // Если поле images присутствует в updateSkill (даже если это пустой массив)
@@ -137,7 +153,9 @@ export class SkillsService {
         deleteFilesByUrls(imagesToDelete);
       }
     }
-    return this.skillsRepository.save({ ...skill, ...updateSkill });
+
+    Object.assign(skill, updateSkill);
+    return this.skillsRepository.save(skill);
   }
 
   async addToFavorites(skillId: string, userId: string): Promise<Skill> {
