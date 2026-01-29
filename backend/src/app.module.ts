@@ -23,12 +23,14 @@ import { RequestsModule } from './requests/requests.module';
 import { NotificationModule } from './notification/notification.module';
 import { HelmetMiddleware } from './common/middleware/helmet.middleware';
 import { CsrfMiddleware } from './common/middleware/csrf.middleware';
+import { mailConfig } from './config/mail.config';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [appConfig, jwtConfig, dbConfig],
+      load: [appConfig, jwtConfig, dbConfig, mailConfig],
     }),
     JwtModule.registerAsync({
       global: true,
@@ -59,6 +61,7 @@ import { CsrfMiddleware } from './common/middleware/csrf.middleware';
     SkillsModule,
     RequestsModule,
     ...(process.env.NODE_ENV !== 'test' ? [NotificationModule] : []),
+    MailModule,
   ],
   controllers: [AppController],
   providers: [AppService],
