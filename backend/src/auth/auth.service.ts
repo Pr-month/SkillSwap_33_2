@@ -113,4 +113,38 @@ export class AuthService {
       text: `Привет!\n\nСпасибо за регистрацию в SkillSwap. Перейдите по ссылке, чтобы подтвердить email:\n\n${confirmUrl}\n\nС уважением, команда SkillSwap.`,
     });
   }
+
+  async requestPasswordReset(email: string): Promise<void> {
+    const user = await this.usersService.findUserByEmail(email);
+    if (!user) {
+      // Не раскрываем, что email не существует (защита от перебора)
+      return;
+    }
+
+    const resetToken = this.jwtService.sign(
+      { sub: user.id, email: user.email },
+      {
+        secret: process.env.JWT_RESET_TOKEN || 'reset_secret',
+        expiresIn: '1h',
+      },
+    );
+
+    await this._sendPasswordReset(email, resetToken).catch((error) => {
+      console.error('Не удалось отправить email сброса пароля:', error);
+    });
+  }
+
+  private async _sendPasswordReset(
+    email: string,
+    token: string,
+  ): Promise<void> {
+    const clientUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const resetUrl = `${clientUrl}/reset-password?token=${token}`;
+
+    await this.mailService.send({
+      to: email,
+      subject: 'Восстановление пароля в SkillSwap',
+      text: `Здравствуйте!\n\nВы запросили восстановление пароля. Перейдите по ссылке, чтобы задать новый пароль:\n\n${resetUrl}\n\nЕсли вы не запрашивали это — проигнорируйте письмо.\n\nС уважением, команда SkillSwap.`,
+    });
+  }
 }
