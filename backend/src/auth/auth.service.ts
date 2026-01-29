@@ -10,6 +10,7 @@ import { RegisterDto } from '../auth/dto/register-user.dto';
 import { UserRole } from '../users/enums';
 import { LoginDto } from './dto/login.dto';
 import { TJwtPayload, Tokens } from './types';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class AuthService {
@@ -19,10 +20,28 @@ export class AuthService {
     private readonly configService: ConfigService,
     @InjectRepository(RefreshToken)
     private refreshTokensRepository: Repository<RefreshToken>,
+    private readonly mailService: MailService,
   ) {}
 
   async register(registerDto: RegisterDto) {
     const user = await this.usersService.register(registerDto);
+
+    // Генерируем токен подтверждения (на 1 день)
+    const confirmToken = this.jwtService.sign(
+      { sub: user.id, email: user.email },
+      {
+        secret: process.env.JWT_ACCESS_TOKEN || 'access_secret',
+        expiresIn: '1d',
+      },
+    );
+
+    // Отправляем email асинхронно (не ждём ответа)
+    this._sendRegistrationConfirmation(user.email, confirmToken).catch(
+      (error) => {
+        console.error('Не удалось отправить email подтверждения:', error);
+      },
+    );
+
     const tokens = await this._generateTokens(user);
     return { ...tokens };
   }
@@ -79,5 +98,19 @@ export class AuthService {
 
   logout(): void {
     return;
+  }
+
+  private async _sendRegistrationConfirmation(
+    email: string,
+    token: string,
+  ): Promise<void> {
+    const clientUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const confirmUrl = `${clientUrl}/confirm-email?token=${token}`;
+
+    await this.mailService.send({
+      to: email,
+      subject: 'Подтверждение регистрации в SkillSwap',
+      text: `Привет!\n\nСпасибо за регистрацию в SkillSwap. Перейдите по ссылке, чтобы подтвердить email:\n\n${confirmUrl}\n\nС уважением, команда SkillSwap.`,
+    });
   }
 }

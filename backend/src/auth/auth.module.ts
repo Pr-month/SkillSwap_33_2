@@ -10,6 +10,7 @@ import { JwtAccessStrategy } from './strategies/jwt-access.strategy';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { RolesGuard } from './guards/roles.guard';
+import { MailModule } from '../mail/mail.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { RolesGuard } from './guards/roles.guard';
     JwtService,
     ConfigService,
     RolesGuard,
+    MailModule,
   ],
   exports: [RolesGuard],
 })
