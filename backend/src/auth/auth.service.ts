@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { User } from '../users/entities/user.entity';
@@ -11,6 +11,7 @@ import { UserRole } from '../users/enums';
 import { LoginDto } from './dto/login.dto';
 import { TJwtPayload, Tokens } from './types';
 import { MailService } from '../mail/mail.service';
+import { JwtConfig, jwtConfig } from '../config/jwt.config';
 
 @Injectable()
 export class AuthService {
@@ -21,6 +22,7 @@ export class AuthService {
     @InjectRepository(RefreshToken)
     private refreshTokensRepository: Repository<RefreshToken>,
     private readonly mailService: MailService,
+    @Inject(jwtConfig.KEY) private readonly jwtConfig: JwtConfig,
   ) {}
 
   async register(registerDto: RegisterDto) {
@@ -30,7 +32,7 @@ export class AuthService {
     const confirmToken = this.jwtService.sign(
       { sub: user.id, email: user.email },
       {
-        secret: process.env.JWT_ACCESS_TOKEN || 'access_secret',
+        secret: this.jwtConfig.accessToken,
         expiresIn: '1d',
       },
     );
@@ -124,7 +126,7 @@ export class AuthService {
     const resetToken = this.jwtService.sign(
       { sub: user.id, email: user.email },
       {
-        secret: process.env.JWT_RESET_TOKEN || 'reset_secret',
+        secret: this.jwtConfig.resetToken,
         expiresIn: '1h',
       },
     );
