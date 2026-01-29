@@ -20,7 +20,7 @@ export class JwtAccessStrategy extends PassportStrategy(Strategy, 'jwt') {
   async validate(payload: TJwtPayload) {
     await Promise.resolve();
     return {
-      userId: payload.sub,
+      sub: payload.sub,
       email: payload.email,
       role: payload.role,
     };

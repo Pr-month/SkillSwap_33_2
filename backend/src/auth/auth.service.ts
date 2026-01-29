@@ -23,9 +23,7 @@ export class AuthService {
 
   async register(registerDto: RegisterDto) {
     const user = await this.usersService.register(registerDto);
-
     const tokens = await this._generateTokens(user);
-
     return { ...tokens };
   }
 
@@ -61,9 +59,17 @@ export class AuthService {
   }
 
   async login(loginDto: LoginDto): Promise<Tokens> {
-    const user = { id: '1', email: loginDto.email, role: UserRole.USER };
-    //Добавить проверку пароля
-    return this._generateTokens(user as User);
+    const user = await this.usersService.findUserByEmail(loginDto.email);
+    if (!user) {
+      throw new Error('Пользователь не найден');
+    }
+    // Проверка пароля (bcrypt)
+    const bcrypt = await import('bcrypt');
+    const isMatch = await bcrypt.compare(loginDto.password, user.password);
+    if (!isMatch) {
+      throw new Error('Неверный пароль');
+    }
+    return this._generateTokens(user);
   }
 
   async refresh(payload: TJwtPayload): Promise<Tokens> {
