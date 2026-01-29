@@ -68,6 +68,7 @@ describe('UsersController (e2e)', () => {
       email: testUsers[0].email,
       role: testUsers[0].role,
     });
+    console.log(accessToken);
   });
 
   afterAll(async () => {
