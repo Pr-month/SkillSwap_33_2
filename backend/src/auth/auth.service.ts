@@ -25,9 +25,7 @@ export class AuthService {
 
   async register(registerDto: RegisterDto) {
     const user = await this.usersService.register(registerDto);
-
     const tokens = await this._generateTokens(user);
-
     return { ...tokens };
   }
 
