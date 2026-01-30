@@ -12,6 +12,7 @@ import { LoginDto } from './dto/login.dto';
 import { TJwtPayload, Tokens } from './types';
 import { MailService } from '../mail/mail.service';
 import { JwtConfig, jwtConfig } from '../config/jwt.config';
+import { AppConfig, appConfig } from '../config/app.config';
 
 @Injectable()
 export class AuthService {
@@ -23,6 +24,7 @@ export class AuthService {
     private refreshTokensRepository: Repository<RefreshToken>,
     private readonly mailService: MailService,
     @Inject(jwtConfig.KEY) private readonly jwtConfig: JwtConfig,
+    @Inject(appConfig.KEY) private readonly appConfig: AppConfig,
   ) {}
 
   async register(registerDto: RegisterDto) {
@@ -106,8 +108,7 @@ export class AuthService {
     email: string,
     token: string,
   ): Promise<void> {
-    const clientUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-    const confirmUrl = `${clientUrl}/confirm-email?token=${token}`;
+    const confirmUrl = `${this.appConfig.clientUrl}/confirm-email?token=${token}`;
 
     await this.mailService.send({
       to: email,
@@ -140,8 +141,7 @@ export class AuthService {
     email: string,
     token: string,
   ): Promise<void> {
-    const clientUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-    const resetUrl = `${clientUrl}/reset-password?token=${token}`;
+    const resetUrl = `${this.appConfig.clientUrl}/reset-password?token=${token}`;
 
     await this.mailService.send({
       to: email,
