@@ -68,11 +68,11 @@ export class AppModule implements NestModule {
     if (process.env.NODE_ENV === 'test') {
       consumer
         .apply(HelmetMiddleware)
-        .forRoutes({ path: '*', method: RequestMethod.ALL });
+        .forRoutes({ path: '*path', method: RequestMethod.ALL });
     } else {
       consumer
         .apply(HelmetMiddleware, CsrfMiddleware)
-        .forRoutes({ path: '*', method: RequestMethod.ALL });
+        .forRoutes({ path: '*path', method: RequestMethod.ALL });
     }
   }
 }
