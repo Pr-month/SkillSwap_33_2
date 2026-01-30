@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { User } from '../users/entities/user.entity';
@@ -30,21 +30,24 @@ export class AuthService {
   async register(registerDto: RegisterDto) {
     const user = await this.usersService.register(registerDto);
 
-    // Генерируем токен подтверждения (на 1 день)
-    const confirmToken = this.jwtService.sign(
-      { sub: user.id, email: user.email },
-      {
-        secret: this.jwtConfig.accessToken,
-        expiresIn: '1d',
-      },
-    );
+    // Отправляем письмо только если email не подтверждён
+    if (!user.isEmailConfirmed) {
+      // Генерируем токен подтверждения (на 1 день)
+      const confirmToken = this.jwtService.sign(
+        { sub: user.id, email: user.email },
+        {
+          secret: this.jwtConfig.accessToken,
+          expiresIn: '1d',
+        },
+      );
 
-    // Отправляем email асинхронно (не ждём ответа)
-    this._sendRegistrationConfirmation(user.email, confirmToken).catch(
-      (error) => {
-        console.error('Не удалось отправить email подтверждения:', error);
-      },
-    );
+      // Отправляем email асинхронно (не ждём ответа)
+      this._sendRegistrationConfirmation(user.email, confirmToken).catch(
+        (error) => {
+          console.error('Не удалось отправить email подтверждения:', error);
+        },
+      );
+    }
 
     const tokens = await this._generateTokens(user);
     return { ...tokens };
@@ -148,5 +151,19 @@ export class AuthService {
       subject: 'Восстановление пароля в SkillSwap',
       text: `Здравствуйте!\n\nВы запросили восстановление пароля. Перейдите по ссылке, чтобы задать новый пароль:\n\n${resetUrl}\n\nЕсли вы не запрашивали это — проигнорируйте письмо.\n\nС уважением, команда SkillSwap.`,
     });
+  }
+
+  async confirmEmail(token: string): Promise<void> {
+    try {
+      const payload = this.jwtService.verify<TJwtPayload>(token, {
+        secret: this.jwtConfig.accessToken,
+      });
+
+      await this.usersService.confirmEmail(payload.sub);
+    } catch {
+      throw new BadRequestException(
+        'Неверный или просроченный токен подтверждения',
+      );
+    }
   }
 }
