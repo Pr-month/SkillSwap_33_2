@@ -49,7 +49,15 @@ export class SkillsService {
     });
 
     // 3. Сохраняем в БД
-    return await this.skillsRepository.save(skill);
+    const savedSkill = await this.skillsRepository.save(skill);
+
+    return await this.skillsRepository.findOneOrFail({
+      where: { id: savedSkill.id },
+      relations: {
+        owner: true,
+        category: true,
+      },
+    });
   }
 
   // ... остальные методы пока остаются как есть
