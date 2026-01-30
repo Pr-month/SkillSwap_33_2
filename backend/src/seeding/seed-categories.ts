@@ -1,84 +1,45 @@
-import { IsNull, Not } from 'typeorm';
 import { Category } from '../categories/entities/category.entity';
 import { AppDataSource } from '../config/db.config';
-
-const skillsCategories = {
-  'Бизнес и карьера': [
-    'Управление командой',
-    'Маркетинг и реклама',
-    'Продажи и переговоры',
-    'Личный бренд',
-    'Резюме и собеседование',
-    'Тайм-менеджмент',
-    'Проектное управление',
-    'Предпринимательство',
-  ],
-  'Творчество и искусство': [
-    'Рисование и иллюстрация',
-    'Фотография',
-    'Видеомонтаж',
-    'Музыка и звук',
-    'Актёрское мастерство',
-    'Креативное письмо',
-    'Арт-терапия',
-    'Декор и DIY',
-  ],
-  'Иностранные языки': [
-    'Английский',
-    'Французский',
-    'Испанский',
-    'Немецкий',
-    'Китайский',
-    'Японский',
-    'Подготовка к экзаменам (IELTS, TOEFL)',
-  ],
-  'Образование и развитие': [
-    'Личностное развитие',
-    'Навыки обучения',
-    'Когнитивные техники',
-    'Скорочтение',
-    'Навыки преподавания',
-    'Коучинг',
-  ],
-  'Дом и уют': [
-    'Уборка и организация',
-    'Домашние финансы',
-    'Приготовление еды',
-    'Домашние растения',
-    'Ремонт',
-    'Хранение вещей',
-  ],
-  'Здоровье и лайфстайл': [
-    'Йога и медитация',
-    'Питание и ЗОЖ',
-    'Ментальное здоровье',
-    'Осознанность',
-    'Физические тренировки',
-    'Сон и восстановление',
-    'Баланс жизни и работы',
-  ],
-} as const;
+import { skillsCategoriesData as skillsCategories } from './skillData';
 
 async function seedCategoriesTree() {
-  // const AppDataSource = new DataSource({
-  //   type: 'postgres',
-  //   host: process.env.POSTGRES_HOST || 'localhost',
-  //   port: parseInt(process.env.POSTGRES_PORT || '5432'),
-  //   username: process.env.POSTGRES_USER || 'postgres',
-  //   password: process.env.POSTGRES_PASSWORD || 'postgres',
-  //   database: process.env.POSTGRES_DB || 'skillswap',
-  //   entities: [Category],
-  //   synchronize: false,
-  // });
-
   try {
     await AppDataSource.initialize();
     console.log('✅ DataSource инициализирован');
 
     const categoryRepository = AppDataSource.getRepository(Category);
 
-    // Очистка старых данных (опционально, удалит всё каскадом)
-    await categoryRepository.delete({ id: Not(IsNull()) });
+    // Проверяем, есть ли уже данные в таблице категорий
+    const existingCategoriesCount = await categoryRepository.count();
+
+    if (existingCategoriesCount > 0) {
+      console.log('📊 Таблица категорий уже содержит данные:');
+      console.log(`   Количество записей: ${existingCategoriesCount}`);
+
+      // Можно вывести статистику существующих данных
+      const allCategories = await categoryRepository.find({
+        relations: ['parent'],
+      });
+
+      const parentCount = allCategories.filter((c) => c.parent === null).length;
+      const childCount = allCategories.filter((c) => c.parent !== null).length;
+
+      console.log(`   Родительских категорий: ${parentCount}`);
+      console.log(`   Дочерних категорий: ${childCount}`);
+
+      console.log('\n⚠️  Seed не выполнен. Таблица уже содержит данные.');
+      console.log('   Если нужно перезаписать данные:');
+      console.log('   1. Удалите записи вручную');
+      console.log('   2. Или запустите: TRUNCATE TABLE category CASCADE;');
+
+      if (AppDataSource.isInitialized) {
+        await AppDataSource.destroy();
+      }
+      console.log('🔌 Подключение закрыто');
+      return; // Прерываем выполнение
+    }
+
+    console.log('📭 Таблица категорий пуста. Начинаем сидирование...');
 
     const createdParentCategories: Map<string, Category> = new Map();
 
@@ -140,8 +101,10 @@ async function seedCategoriesTree() {
     console.error('❌ Ошибка при сидировании:', error);
     process.exit(1);
   } finally {
-    await AppDataSource.destroy();
-    console.log('🔌 Подключение закрыто');
+    if (AppDataSource.isInitialized) {
+      await AppDataSource.destroy();
+      console.log('🔌 Подключение закрыто');
+    }
   }
 }
 
