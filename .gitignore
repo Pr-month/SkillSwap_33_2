@@ -1,0 +1,22 @@
+# Node
+node_modules/
+.npm/
+.yarn/
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# IDE (если есть глобальные настройки)
+.idea/
+.vscode/
+
+# Logs in root (just in case)
+*.log
+logs/
+
+# Temporary files
+tmp/
+.temp/

@@ -10,12 +10,14 @@ import { JwtAccessStrategy } from './strategies/jwt-access.strategy';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { RolesGuard } from './guards/roles.guard';
+import { MailModule } from '../mail/mail.module';
+import { User } from 'src/users/entities/user.entity';
 
 @Module({
   imports: [
     PassportModule,
     UsersModule,
-    TypeOrmModule.forFeature([RefreshToken]),
+    TypeOrmModule.forFeature([RefreshToken, User]),
   ],
   controllers: [AuthController],
   providers: [
@@ -25,6 +27,7 @@ import { RolesGuard } from './guards/roles.guard';
     JwtService,
     ConfigService,
     RolesGuard,
+    MailModule,
   ],
   exports: [RolesGuard],
 })

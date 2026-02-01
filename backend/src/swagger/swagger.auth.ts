@@ -130,3 +130,47 @@ export const ApiLogout = () =>
       description: 'Невалидный или просроченный refresh токен',
     }),
   );
+
+// POST /auth/confirm-email
+export const ApiConfirmEmail = () =>
+  applyDecorators(
+    ApiOperation({
+      summary: 'Подтверждение email пользователя',
+      description:
+        'Подтверждение email адреса с использованием JWT токена из письма. Токен передается в теле запроса.',
+    }),
+    ApiBody({
+      schema: {
+        type: 'object',
+        properties: {
+          token: {
+            type: 'string',
+            description: 'JWT токен подтверждения email',
+            example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+          },
+        },
+        required: ['token'],
+      },
+    }),
+    ApiResponse({
+      status: 200,
+      description: 'Email успешно подтверждён',
+      schema: {
+        example: {
+          message: 'Email успешно подтверждён',
+        },
+      },
+    }),
+    ApiResponse({
+      status: 400,
+      description: 'Неверный или просроченный токен подтверждения',
+    }),
+    ApiResponse({
+      status: 404,
+      description: 'Пользователь не найден',
+    }),
+    ApiResponse({
+      status: 409,
+      description: 'Email уже подтверждён',
+    }),
+  );

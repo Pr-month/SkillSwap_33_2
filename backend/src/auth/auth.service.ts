@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { User } from '../users/entities/user.entity';
@@ -10,6 +10,9 @@ import { RegisterDto } from '../auth/dto/register-user.dto';
 import { UserRole } from '../users/enums';
 import { LoginDto } from './dto/login.dto';
 import { TJwtPayload, Tokens } from './types';
+import { MailService } from '../mail/mail.service';
+import { JwtConfig, jwtConfig } from '../config/jwt.config';
+import { AppConfig, appConfig } from '../config/app.config';
 
 @Injectable()
 export class AuthService {
@@ -19,13 +22,35 @@ export class AuthService {
     private readonly configService: ConfigService,
     @InjectRepository(RefreshToken)
     private refreshTokensRepository: Repository<RefreshToken>,
+    @Inject(jwtConfig.KEY) private readonly jwtConfig: JwtConfig,
+    @Inject(appConfig.KEY) private readonly appConfig: AppConfig,
+    @InjectRepository(User)
+    private usersRepository: Repository<User>,
   ) {}
 
   async register(registerDto: RegisterDto) {
     const user = await this.usersService.register(registerDto);
 
-    const tokens = await this._generateTokens(user);
+    // Отправляем письмо только если email не подтверждён
+    if (!user.isEmailConfirmed) {
+      // Генерируем токен подтверждения (на 1 день)
+      const confirmToken = this.jwtService.sign(
+        { sub: user.id, email: user.email },
+        {
+          secret: this.jwtConfig.accessToken,
+          expiresIn: '1d',
+        },
+      );
 
+      // Отправляем email асинхронно (не ждём ответа)
+      this._sendRegistrationConfirmation(user.email, confirmToken).catch(
+        (error) => {
+          console.error('Не удалось отправить email подтверждения:', error);
+        },
+      );
+    }
+
+    const tokens = await this._generateTokens(user);
     return { ...tokens };
   }
 
@@ -61,9 +86,17 @@ export class AuthService {
   }
 
   async login(loginDto: LoginDto): Promise<Tokens> {
-    const user = { id: '1', email: loginDto.email, role: UserRole.USER };
+    const user = await this.usersRepository.findOne({
+      where: { email: loginDto.email },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException(
+        `Пользователь с email ${loginDto.email} не найден`,
+      );
+    }
     //Добавить проверку пароля
-    return this._generateTokens(user as User);
+    return this._generateTokens(user);
   }
 
   async refresh(payload: TJwtPayload): Promise<Tokens> {
@@ -73,5 +106,65 @@ export class AuthService {
 
   logout(): void {
     return;
+  }
+
+  private async _sendRegistrationConfirmation(
+    email: string,
+    token: string,
+  ): Promise<void> {
+    const confirmUrl = `${this.appConfig.clientUrl}/confirm-email?token=${token}`;
+
+    await this.mailService.send({
+      to: email,
+      subject: 'Подтверждение регистрации в SkillSwap',
+      text: `Привет!\n\nСпасибо за регистрацию в SkillSwap. Перейдите по ссылке, чтобы подтвердить email:\n\n${confirmUrl}\n\nС уважением, команда SkillSwap.`,
+    });
+  }
+
+  async requestPasswordReset(email: string): Promise<void> {
+    const user = await this.usersService.findUserByEmail(email);
+    if (!user) {
+      // Не раскрываем, что email не существует (защита от перебора)
+      return;
+    }
+
+    const resetToken = this.jwtService.sign(
+      { sub: user.id, email: user.email },
+      {
+        secret: this.jwtConfig.resetToken,
+        expiresIn: '1h',
+      },
+    );
+
+    await this._sendPasswordReset(email, resetToken).catch((error) => {
+      console.error('Не удалось отправить email сброса пароля:', error);
+    });
+  }
+
+  private async _sendPasswordReset(
+    email: string,
+    token: string,
+  ): Promise<void> {
+    const resetUrl = `${this.appConfig.clientUrl}/reset-password?token=${token}`;
+
+    await this.mailService.send({
+      to: email,
+      subject: 'Восстановление пароля в SkillSwap',
+      text: `Здравствуйте!\n\nВы запросили восстановление пароля. Перейдите по ссылке, чтобы задать новый пароль:\n\n${resetUrl}\n\nЕсли вы не запрашивали это — проигнорируйте письмо.\n\nС уважением, команда SkillSwap.`,
+    });
+  }
+
+  async confirmEmail(token: string): Promise<void> {
+    try {
+      const payload = this.jwtService.verify<TJwtPayload>(token, {
+        secret: this.jwtConfig.accessToken,
+      });
+
+      await this.usersService.confirmEmail(payload.sub);
+    } catch {
+      throw new BadRequestException(
+        'Неверный или просроченный токен подтверждения',
+      );
+    }
   }
 }

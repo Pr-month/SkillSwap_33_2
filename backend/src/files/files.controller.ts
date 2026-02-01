@@ -14,7 +14,10 @@ import {
   ensureUploadDirectoryExists,
 } from './file.utils';
 import { MAX_FILE_SIZE, UPLOAD_PATH } from './file.constants';
+import { ApiFilesTag, ApiUploadFile } from '../swagger';
+import { FileUploadDto } from './dto/file-upload.dto';
 
+@ApiFilesTag()
 @Controller('files')
 export class FilesController {
   constructor(private readonly filesService: FilesService) {}
@@ -50,7 +53,10 @@ export class FilesController {
       }),
     }),
   )
-  uploadFile(@UploadedFile() file: Express.Multer.File | undefined) {
+  @ApiUploadFile()
+  uploadFile(
+    @UploadedFile() file: Express.Multer.File | undefined,
+  ): FileUploadDto {
     if (!file) {
       throw new BadRequestException('Файл не был загружен');
     }

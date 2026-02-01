@@ -17,10 +17,12 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "npm run db:drop:test && npm run db:seed:test && cross-env NODE_ENV=test jest --config ./test/jest-e2e.json",
+    "test:e2e": "npm run db:drop:test && npm run db:seed:test && cross-env NODE_ENV=test jest --config ./test/jest-e2e.json --runInBand",
+    "test:e2e:users": "npm run db:drop:test && npm run db:seed:test && cross-env NODE_ENV=test jest --config ./test/jest-e2e.json test/users.e2e-spec.ts",
     "test:skill": "jest src/skills/skills.service.spec.ts",
     "seed:users": "node -r ts-node/register src/seeding/seed-users.ts",
     "seed:categories": "node -r ts-node/register src/seeding/seed-categories.ts",
+    "seed:skills": "node -r ts-node/register src/seeding/seed-skills.ts",
     "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
     "db:drop:test": "cross-env NODE_ENV=test npm run typeorm -- schema:drop -d src/config/db.config.ts",
     "db:seed:test": "cross-env NODE_ENV=test npm run seed:users && cross-env NODE_ENV=test npm run seed:categories"
@@ -46,6 +48,7 @@
     "csurf": "^1.11.0",
     "dotenv": "^17.2.3",
     "helmet": "^8.1.0",
+    "nodemailer": "^7.0.12",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "pg": "^8.16.3",
@@ -53,7 +56,7 @@
     "rxjs": "^7.8.1",
     "socket.io": "^4.8.3",
     "swagger-ui-express": "^5.0.1",
-    "typeorm": "^0.3.28",
+    "typeorm": "^0.3.17",
     "winston": "^3.19.0"
   },
   "devDependencies": {
@@ -72,6 +75,7 @@
     "@types/jest": "^29.5.14",
     "@types/multer": "^2.0.0",
     "@types/node": "^22.19.2",
+    "@types/nodemailer": "^7.0.4",
     "@types/passport-jwt": "^4.0.1",
     "@types/socket.io": "^3.0.1",
     "@types/supertest": "^6.0.2",

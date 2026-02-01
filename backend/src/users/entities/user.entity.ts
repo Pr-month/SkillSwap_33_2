@@ -13,6 +13,7 @@ import {
 } from 'typeorm';
 import { Skill } from '../../skills/entities/skill.entity';
 import { Category } from '../../categories/entities/category.entity';
+import { ApiHideProperty } from '@nestjs/swagger';
 
 @Entity()
 export class User {
@@ -33,6 +34,7 @@ export class User {
   @IsDefined()
   @MinLength(8)
   @Exclude()
+  @ApiHideProperty()
   password: string;
 
   @Column()
@@ -65,12 +67,16 @@ export class User {
   })
   role: UserRole;
 
+  @Column({ default: false })
+  isEmailConfirmed: boolean;
+
   @BeforeInsert()
   @BeforeUpdate()
   emailToLowerCase() {
     this.email = this.email.toLowerCase();
   }
 
+  @ApiHideProperty()
   @OneToMany(() => RefreshToken, (token) => token.user, {
     cascade: true, // автоматически сохраняет/обновляет/удаляет связанные сущности
   })
