@@ -26,7 +26,8 @@ export class AuthService {
     @Inject(appConfig.KEY) private readonly appConfig: AppConfig,
     @InjectRepository(User)
     private usersRepository: Repository<User>,
-  ) {}
+    private mailService: MailService,
+  ) { }
 
   async register(registerDto: RegisterDto) {
     const user = await this.usersService.register(registerDto);
