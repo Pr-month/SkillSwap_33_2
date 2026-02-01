@@ -68,7 +68,6 @@ describe('UsersController (e2e)', () => {
       email: testUsers[0].email,
       role: testUsers[0].role,
     });
-    console.log(accessToken);
   });
 
   afterAll(async () => {
@@ -138,7 +137,6 @@ describe('UsersController (e2e)', () => {
         .expect(200)
         .expect((res) => {
           const user = res.body as User;
-          console.log('user: ', user);
           expect(user.id).toBe(testUsers[0].id);
           expect(user.email).toBe(testUsers[0].email);
         });
@@ -168,7 +166,6 @@ describe('UsersController (e2e)', () => {
         .expect(200);
 
       const updatedUser = response.body as User;
-      console.log('Обновленный пользователь:', updatedUser);
       expect(updatedUser.name).toBe(updateData.name);
       expect(updatedUser.birthdate).toBe(updateData.birthdate);
       expect(updatedUser.id).toBe(testUser.id);
@@ -195,8 +192,6 @@ describe('UsersController (e2e)', () => {
       const updateData = {
         newPassword: 'UrzogGroDrollForever2026!',
       };
-
-      console.log('Отправляемые данные для смены пароля:', updateData);
 
       const response = await request(app.getHttpServer())
         .patch('/api/users/me/password')
