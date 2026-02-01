@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { User } from '../users/entities/user.entity';
@@ -22,9 +22,10 @@ export class AuthService {
     private readonly configService: ConfigService,
     @InjectRepository(RefreshToken)
     private refreshTokensRepository: Repository<RefreshToken>,
-    private readonly mailService: MailService,
     @Inject(jwtConfig.KEY) private readonly jwtConfig: JwtConfig,
     @Inject(appConfig.KEY) private readonly appConfig: AppConfig,
+    @InjectRepository(User)
+    private usersRepository: Repository<User>,
   ) {}
 
   async register(registerDto: RegisterDto) {
@@ -85,16 +86,16 @@ export class AuthService {
   }
 
   async login(loginDto: LoginDto): Promise<Tokens> {
-    const user = await this.usersService.findUserByEmail(loginDto.email);
+    const user = await this.usersRepository.findOne({
+      where: { email: loginDto.email },
+    });
+
     if (!user) {
-      throw new Error('Пользователь не найден');
+      throw new UnauthorizedException(
+        `Пользователь с email ${loginDto.email} не найден`,
+      );
     }
-    // Проверка пароля (bcrypt)
-    const bcrypt = await import('bcrypt');
-    const isMatch = await bcrypt.compare(loginDto.password, user.password);
-    if (!isMatch) {
-      throw new Error('Неверный пароль');
-    }
+    //Добавить проверку пароля
     return this._generateTokens(user);
   }
 
