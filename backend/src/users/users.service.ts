@@ -204,4 +204,14 @@ export class UsersService {
       },
     };
   }
+
+  async confirmEmail(userId: string): Promise<User> {
+    const user = await this.findUserById(userId);
+    if (user.isEmailConfirmed) {
+      throw new ConflictException('Email already confirmed');
+    }
+
+    user.isEmailConfirmed = true;
+    return this.usersRepository.save(user);
+  }
 }

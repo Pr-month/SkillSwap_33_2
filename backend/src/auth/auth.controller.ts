@@ -7,6 +7,7 @@ import {
   UseGuards,
   Req,
   Get,
+  ValidationPipe,
 } from '@nestjs/common';
 import {
   ApiAuthTag,
@@ -15,6 +16,7 @@ import {
   ApiLogin,
   ApiRefreshToken,
   ApiLogout,
+  ApiConfirmEmail,
 } from '../swagger';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
@@ -22,6 +24,7 @@ import { RegisterDto } from './dto/register-user.dto';
 import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
 import { Tokens, TAuthResponse } from './types';
 import { Request } from 'express';
+import { ConfirmEmailDto } from './dto/confirm-email.dto';
 
 @ApiAuthTag()
 @Controller('auth')
@@ -67,5 +70,15 @@ export class AuthController {
   logout() {
     this.authService.logout();
     return { message: 'Logged out successfully' };
+  }
+
+  @Post('confirm-email')
+  @ApiConfirmEmail()
+  async confirmEmail(
+    @Body(new ValidationPipe({ whitelist: true }))
+    confirmEmailDto: ConfirmEmailDto,
+  ) {
+    await this.authService.confirmEmail(confirmEmailDto.token);
+    return { message: 'Email успешно подтверждён' };
   }
 }

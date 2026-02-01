@@ -16,6 +16,7 @@ import { Skill } from '../skills/entities/skill.entity';
 import { plainToInstance } from 'class-transformer';
 import { NotificationsGateway } from '../notification/notifications.gateway';
 import { NotificationPayload } from '../notification/guards/ws-types';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class RequestsService {
@@ -27,6 +28,7 @@ export class RequestsService {
     @InjectRepository(Skill)
     private skillsRepository: Repository<Skill>,
     private notificationsGateway: NotificationsGateway,
+    private mailService: MailService,
   ) {}
 
   // Проверка прав пользователя на заявку
@@ -152,6 +154,21 @@ export class RequestsService {
       offeredSkill.title,
     );
 
+    // Отправка email о новой заявке
+    const receiverEmail = await this.usersRepository.findOne({
+      where: { id: receiverId },
+      select: ['email'],
+    });
+    if (receiverEmail?.email) {
+      this._sendNewRequestEmail(
+        receiverEmail.email,
+        sender.name,
+        offeredSkill.title,
+      ).catch(() => {
+        // Игнорируем ошибки отправки email
+      });
+    }
+
     return savedRequests;
   }
 
@@ -259,6 +276,21 @@ export class RequestsService {
       offeredSkill.title,
     );
 
+    // Отправка email об одобрении заявки
+    const senderEmail = await this.usersRepository.findOne({
+      where: { id: request.senderId },
+      select: ['email'],
+    });
+    if (senderEmail?.email) {
+      this._sendRequestAcceptedEmail(
+        senderEmail.email,
+        receiver.name,
+        offeredSkill.title,
+      ).catch(() => {
+        // Игнорируем ошибки отправки email
+      });
+    }
+
     return savedRequests;
   }
 
@@ -308,6 +340,21 @@ export class RequestsService {
       receiver.name,
       offeredSkill.title,
     );
+
+    // Отправка email об отклонении заявки
+    const senderEmail = await this.usersRepository.findOne({
+      where: { id: request.senderId },
+      select: ['email'],
+    });
+    if (senderEmail?.email) {
+      this._sendRequestRejectedEmail(
+        senderEmail.email,
+        receiver.name,
+        offeredSkill.title,
+      ).catch(() => {
+        // Игнорируем ошибки отправки email
+      });
+    }
 
     return savedRequests;
   }
@@ -387,5 +434,42 @@ export class RequestsService {
     };
 
     this.notificationsGateway.notifyUser(toUserId, payload);
+  }
+
+  // Приватные методы отправки email
+  private async _sendNewRequestEmail(
+    to: string,
+    senderName: string,
+    skillName: string,
+  ): Promise<void> {
+    await this.mailService.send({
+      to,
+      subject: 'Новая заявка на SkillSwap',
+      text: `У вас новая заявка на обмен навыками!\n\nПользователь ${senderName} хочет обменяться с вами по навыку "${skillName}".\n\nПерейдите в личный кабинет, чтобы ответить.\n\nС уважением, команда SkillSwap.`,
+    });
+  }
+
+  private async _sendRequestAcceptedEmail(
+    to: string,
+    receiverName: string,
+    skillName: string,
+  ): Promise<void> {
+    await this.mailService.send({
+      to,
+      subject: 'Ваша заявка принята на SkillSwap',
+      text: `Отличные новости!\n\nПользователь ${receiverName} принял вашу заявку на обмен навыком "${skillName}".\n\nСкорее заходите в личный кабинет, чтобы связаться.\n\nС уважением, команда SkillSwap.`,
+    });
+  }
+
+  private async _sendRequestRejectedEmail(
+    to: string,
+    receiverName: string,
+    skillName: string,
+  ): Promise<void> {
+    await this.mailService.send({
+      to,
+      subject: 'Ваша заявка отклонена на SkillSwap',
+      text: `Пользователь ${receiverName} отклонил вашу заявку на обмен навыком "${skillName}".\n\nНе расстраивайтесь — попробуйте найти другого партнёра!\n\nС уважением, команда SkillSwap.`,
+    });
   }
 }

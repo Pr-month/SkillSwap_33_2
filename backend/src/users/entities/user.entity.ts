@@ -67,6 +67,9 @@ export class User {
   })
   role: UserRole;
 
+  @Column({ default: false })
+  isEmailConfirmed: boolean;
+
   @BeforeInsert()
   @BeforeUpdate()
   emailToLowerCase() {
