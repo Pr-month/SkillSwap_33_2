@@ -1,0 +1,10 @@
+services:
+  email-service:
+    build: ./skillswap-email-service
+    ports:
+      - "3005:3005"
+    environment:
+      - NODE_ENV=development
+      - PORT=3005
+      - SMTP_HOST=smtp.gmail.com
+      - SMTP_PORT=587
