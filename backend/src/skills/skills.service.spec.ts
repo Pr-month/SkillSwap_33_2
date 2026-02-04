@@ -38,7 +38,7 @@ describe('SkillsService', () => {
     updatedAt: new Date('2024-01-01'),
     owner: mockUser as User,
     category: mockCategory as Category,
-    interestedUser: [],
+    interestedUsers: [],
   };
 
   const createSkillDto: CreateSkillDto = {
@@ -51,11 +51,16 @@ describe('SkillsService', () => {
     create: jest.fn(),
     save: jest.fn(),
     findOne: jest.fn(),
+    findOneOrFail: jest.fn(),
     find: jest.fn(),
     count: jest.fn(),
   };
 
   const mockCategoriesRepository = {
+    findOne: jest.fn(),
+  };
+
+  const mockUsersRepository = {
     findOne: jest.fn(),
   };
 
@@ -72,6 +77,10 @@ describe('SkillsService', () => {
         {
           provide: getRepositoryToken(Skill),
           useValue: mockSkillsRepository,
+        },
+        {
+          provide: getRepositoryToken(User),
+          useValue: mockUsersRepository,
         },
         {
           provide: getRepositoryToken(Category),
@@ -92,6 +101,7 @@ describe('SkillsService', () => {
       mockCategoriesRepository.findOne.mockResolvedValue(mockCategory);
       mockSkillsRepository.create.mockReturnValue(mockSkill);
       mockSkillsRepository.save.mockResolvedValue(mockSkill);
+      mockSkillsRepository.findOneOrFail.mockResolvedValue(mockSkill);
 
       const result = await service.create(createSkillDto, 'user-id');
 
@@ -104,6 +114,13 @@ describe('SkillsService', () => {
         category: mockCategory,
       });
       expect(mockSkillsRepository.save).toHaveBeenCalledWith(mockSkill);
+      expect(mockSkillsRepository.findOneOrFail).toHaveBeenCalledWith({
+        where: { id: mockSkill.id },
+        relations: {
+          owner: true,
+          category: true,
+        },
+      });
       expect(result).toEqual(mockSkill);
     });
 
@@ -184,6 +201,7 @@ describe('SkillsService', () => {
       const existingSkill = {
         ...mockSkill,
         owner: { id: 'user-123' } as User,
+        category: mockCategory as Category,
       };
 
       const updatedSkill = {
@@ -201,7 +219,18 @@ describe('SkillsService', () => {
       );
 
       expect(mockSkillsRepository.findOne).toHaveBeenCalledWith({
-        relations: { owner: true },
+        relations: {
+          owner: true,
+          category: true,
+        },
+        where: { id: 'skill-123' },
+      });
+
+      expect(mockSkillsRepository.findOne).toHaveBeenCalledWith({
+        relations: {
+          owner: true,
+          category: true,
+        },
         where: { id: 'skill-123' },
       });
 
