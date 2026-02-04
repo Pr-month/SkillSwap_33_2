@@ -226,14 +226,6 @@ describe('SkillsService', () => {
         where: { id: 'skill-123' },
       });
 
-      expect(mockSkillsRepository.findOne).toHaveBeenCalledWith({
-        relations: {
-          owner: true,
-          category: true,
-        },
-        where: { id: 'skill-123' },
-      });
-
       expect(mockSkillsRepository.save).toHaveBeenCalledWith({
         ...existingSkill,
         ...updateSkillDto,
