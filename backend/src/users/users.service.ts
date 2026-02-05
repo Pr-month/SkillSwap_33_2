@@ -94,7 +94,7 @@ export class UsersService {
     }
 
     const cleanUpdateData = Object.fromEntries(
-      Object.entries(updateData).filter(([_, value]) => value !== undefined),
+      Object.entries(updateData).filter((entry) => entry[1] !== undefined),
     );
 
     Object.assign(user, cleanUpdateData);
