@@ -167,7 +167,9 @@ describe('UsersController (e2e)', () => {
 
       const updatedUser = response.body as User;
       expect(updatedUser.name).toBe(updateData.name);
-      expect(updatedUser.birthdate).toBe(updateData.birthdate);
+      expect(new Date(updatedUser.birthdate).toISOString().split('T')[0]).toBe(
+        updateData.birthdate,
+      );
       expect(updatedUser.id).toBe(testUser.id);
     });
 

@@ -1,11 +1,13 @@
 import {
   IsDate,
+  IsDateString,
   IsEmail,
   IsOptional,
   IsString,
   MinLength,
 } from 'class-validator';
 import { GenderOption, UserRole } from '../enums';
+import { Type } from 'class-transformer';
 
 export class UpdateUserDto {
   @IsOptional()
@@ -22,6 +24,7 @@ export class UpdateUserDto {
   about?: string;
 
   @IsOptional()
+  @Type(() => Date)
   @IsDate()
   birthdate?: Date;
 
