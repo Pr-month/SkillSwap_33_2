@@ -72,6 +72,14 @@ export class RequestsService {
       throw new NotFoundException('Запрашиваемый навык не найден');
     }
 
+    // Проверяем, что владелец существуют
+    if (!offeredSkill.owner) {
+      throw new NotFoundException('Владелец предлагаемого навыка не найден');
+    }
+    if (!requestedSkill.owner) {
+      throw new NotFoundException('Владелец запрашиваемого навыка не найден');
+    }
+
     const receiverId = requestedSkill.owner.id;
 
     // Проверка существования получателя
@@ -87,19 +95,6 @@ export class RequestsService {
       throw new ForbiddenException('Вы не владеете предлагаемым навыком');
     }
 
-    const receiverHasSkill = await this.skillsRepository.findOne({
-      where: {
-        id: requestedSkillId,
-        owner: { id: receiverId },
-      },
-    });
-
-    if (!receiverHasSkill) {
-      throw new BadRequestException(
-        'Получатель не владеет запрашиваемым навыком',
-      );
-    }
-
     // Проверка: нельзя отправлять заявку самому себе
     if (receiverId === senderId) {
       throw new BadRequestException('Нельзя отправлять заявку самому себе');
@@ -107,18 +102,13 @@ export class RequestsService {
 
     // Проверка дубликатов активных заявок
     const existingRequest = await this.requestsRepository.findOne({
-      where: [
-        {
-          senderId,
-          receiverId,
-          status: In([RequestStatus.PENDING, RequestStatus.ACCEPTED]),
-        },
-        {
-          senderId: receiverId,
-          receiverId: senderId,
-          status: In([RequestStatus.PENDING, RequestStatus.ACCEPTED]),
-        },
-      ],
+      where: {
+        sender: { id: senderId }, // Используем отношение, а не senderId
+        receiver: { id: receiverId }, // Используем отношение, а не receiverId
+        offeredSkill: { id: offeredSkillId },
+        requestedSkill: { id: requestedSkillId },
+        status: In([RequestStatus.PENDING, RequestStatus.ACCEPTED]),
+      },
     });
 
     if (existingRequest) {
@@ -127,12 +117,11 @@ export class RequestsService {
 
     // Создание заявки
     const request = this.requestsRepository.create({
-      sender: { id: senderId },
-      receiver: { id: receiverId },
-      offeredSkill: { id: offeredSkillId },
-      requestedSkill: { id: requestedSkillId },
+      sender: { id: senderId }, // Используем отношение
+      receiver: { id: receiverId }, // Используем отношение
+      offeredSkill,
+      requestedSkill,
       status: RequestStatus.PENDING,
-      isRead: false,
     });
 
     // Сохранение в БД и возврат результата
