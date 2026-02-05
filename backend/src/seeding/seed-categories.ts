@@ -5,6 +5,7 @@ import { skillsCategoriesData as skillsCategories } from './skillData';
 async function seedCategoriesTree() {
   try {
     await AppDataSource.initialize();
+    await AppDataSource.synchronize(); // Создать таблицы если их нет
     console.log('✅ DataSource инициализирован');
 
     const categoryRepository = AppDataSource.getRepository(Category);

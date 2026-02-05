@@ -18,6 +18,7 @@ const createMockUser = (id: string): User => {
     gender: GenderOption.MALE,
     role: UserRole.USER,
     avatar: null as unknown as string,
+    isEmailConfirmed: false,
     refreshTokens: [],
     skills: [],
     wantToLearn: [],
