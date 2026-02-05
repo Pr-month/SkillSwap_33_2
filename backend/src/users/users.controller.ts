@@ -24,6 +24,7 @@ import {
   ApiUpdatePassword,
   ApiUsersTag,
 } from 'src/swagger/swagger.users';
+import { FindUsersQueryDto } from './dto/find-users-query.dto';
 
 @ApiUsersTag()
 @Controller('users')
@@ -32,24 +33,16 @@ export class UsersController {
 
   @Get()
   @ApiFindUsers()
-  findAll(
-    @Query('page') page: string = '1',
-    @Query('limit') limit: string = '10',
-    @Query('name') name?: string,
-    @Query('email') email?: string,
-    @Query('city') city?: string,
-    @Query('role') role?: string,
-    @Query('gender') gender?: string,
-  ) {
-    logger.info('GET /users', { page, limit, name, email, city, role, gender });
+  findAll(@Query() queryParams: FindUsersQueryDto) {
+    logger.info('GET /users', { queryParams });
     return this.usersService.findAllFiltered({
-      page: Number(page),
-      limit: Number(limit),
-      name,
-      email,
-      city,
-      role,
-      gender,
+      page: queryParams.page,
+      limit: queryParams.limit,
+      name: queryParams.name,
+      email: queryParams.email,
+      city: queryParams.city,
+      role: queryParams.role,
+      gender: queryParams.gender,
     });
   }
 
