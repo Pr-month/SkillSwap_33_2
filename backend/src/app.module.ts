@@ -25,6 +25,7 @@ import { HelmetMiddleware } from './common/middleware/helmet.middleware';
 import { CsrfMiddleware } from './common/middleware/csrf.middleware';
 import { mailConfig } from './config/mail.config';
 import { MailModule } from './mail/mail.module';
+import { EmailModule } from './email/email.module';
 
 @Module({
   imports: [
@@ -62,6 +63,7 @@ import { MailModule } from './mail/mail.module';
     RequestsModule,
     ...(process.env.NODE_ENV !== 'test' ? [NotificationModule] : []),
     MailModule,
+    EmailModule,
   ],
   controllers: [AppController],
   providers: [AppService],
