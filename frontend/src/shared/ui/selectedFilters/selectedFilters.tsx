@@ -2,7 +2,7 @@ import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '@/services/store/store';
 import { removeFilter } from '@/services/slices/filtersSlice';
-import styles from './SelectedFilters.module.css';
+import styles from './selectedFilters.module.css';
 
 type FilterType = 'mode' | 'gender' | 'city' | 'skill';
 

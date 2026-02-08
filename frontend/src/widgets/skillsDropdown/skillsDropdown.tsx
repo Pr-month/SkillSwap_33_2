@@ -1,6 +1,6 @@
 import { useEffect, useState, forwardRef } from 'react';
 import { skillsCategories, skillsMapping } from '@/shared/lib/categories';
-import styles from './SkillsDropdown.module.css';
+import styles from './skillsDropdown.module.css';
 import { useSelector } from '@/services/store/store';
 import { getSkillsSelector } from '@/services/slices/skillsSlice';
 

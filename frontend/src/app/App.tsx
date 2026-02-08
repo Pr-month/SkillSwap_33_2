@@ -23,7 +23,7 @@ const ProfileDetailsPage = lazy(
     }),
 );
 const SkillPage = lazy(() => import('@/pages/skillPage/skillPage'));
-const RegistrationForms = lazy(() => import('@/features/registrationForms/registrationForms'));
+const RegistrationForms = lazy(() => import('@/features/RegistrationForms/registrationForms'));
 const SuccessModal = lazy(() => import('@/features/successModal/successModal'));
 const RegisterPreviewPage = lazy(() => import('@/pages/registerPreviewPage/registerPreviewPage'));
 const ErrorPage = lazy(() => import('@/pages/ErrorPage/ErrorPage'));
