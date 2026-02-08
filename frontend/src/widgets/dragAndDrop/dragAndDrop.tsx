@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import styles from './DragAndDrop.module.css';
+import styles from './dragAndDrop.module.css';
 
 type DragAndDropUploaderProps = {
   placeholder: string;

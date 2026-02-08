@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, forwardRef } from 'react';
 import { TextInput, TextInputProps } from '../textInput/textInput.tsx';
-import styles from './Autocomplete.module.css';
+import styles from './autoComplete.module.css';
 import { useClickOutside } from '@/shared/hooks/useClickOutside.ts';
 import { useDebounce } from '@/shared/hooks/useDebounce.ts';
 
