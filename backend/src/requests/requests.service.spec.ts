@@ -1,3 +1,9 @@
+import {
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -11,12 +17,6 @@ import { RequestStatus } from './request-status.enum';
 import { GenderOption, UserRole } from '../users/enums';
 import { Category } from '../categories/entities/category.entity';
 import { NotificationsGateway } from '../notification/notifications.gateway';
-import {
-  NotFoundException,
-  ForbiddenException,
-  BadRequestException,
-  InternalServerErrorException,
-} from '@nestjs/common';
 import { MailService } from '../mail/mail.service';
 
 // Фабрики для создания мок-данных
