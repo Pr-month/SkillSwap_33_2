@@ -17,6 +17,7 @@ import {
   BadRequestException,
   InternalServerErrorException,
 } from '@nestjs/common';
+import { MailService } from '../mail/mail.service';
 
 // Фабрики для создания мок-данных
 const createMockUser = (overrides: Partial<User> = {}): User => ({
@@ -37,6 +38,7 @@ const createMockUser = (overrides: Partial<User> = {}): User => ({
   emailToLowerCase: function (this: User) {
     this.email = this.email.toLowerCase();
   },
+  isEmailConfirmed: true,
   ...overrides,
 });
 
@@ -117,6 +119,11 @@ function setupRequestMocks(
 }
 
 describe('RequestsService', () => {
+  // Мок для MailService
+  const mockMailService = {
+    send: jest.fn().mockResolvedValue(undefined),
+  };
+
   let service: RequestsService;
   let requestRepository: MockRepository<Request>;
   let userRepository: MockRepository<User>;
@@ -203,6 +210,10 @@ describe('RequestsService', () => {
           provide: NotificationsGateway,
           useValue: mockNotificationsGateway,
         },
+        {
+          provide: MailService,
+          useValue: mockMailService,
+        },
       ],
     }).compile();
 
@@ -211,6 +222,7 @@ describe('RequestsService', () => {
     notificationsGateway = mockNotificationsGateway;
 
     jest.clearAllMocks();
+    mockMailService.send.mockClear();
   });
 
   describe('checkUserAccess - проверка доступа к заявке', () => {
