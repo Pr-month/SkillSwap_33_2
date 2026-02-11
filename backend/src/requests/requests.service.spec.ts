@@ -547,6 +547,54 @@ describe('RequestsService', () => {
         service.accept(mockRequest.id, mockUser2.id),
       ).rejects.toThrow(BadRequestException);
     });
+
+    it('должен успешно принять заявку, обновить статус, отправить уведомление и email', async () => {
+      (requestRepository.findOne as jest.Mock).mockResolvedValue({
+        ...mockRequest,
+        status: RequestStatus.PENDING,
+      });
+
+      (requestRepository.save as jest.Mock).mockResolvedValue({
+        ...mockRequest,
+        status: RequestStatus.ACCEPTED,
+        isRead: true,
+      });
+
+      // Мокаем findOneBy для уведомлений (receiver и offeredSkill)
+      (userRepository.findOneBy as jest.Mock)
+        .mockResolvedValueOnce(mockUser2) // receiver (принимающий)
+        .mockResolvedValueOnce(mockSkillOffered); // offeredSkill (по id)
+
+      // Важно: мокаем findOne для получения email отправителя
+      (userRepository.findOne as jest.Mock).mockResolvedValueOnce({
+        email: 'ivan@example.com',
+      });
+
+      const result = await service.accept(mockRequest.id, mockUser2.id);
+
+      expect(result.status).toBe(RequestStatus.ACCEPTED);
+      expect(result.isRead).toBe(true);
+
+      // WS-уведомление отправителю
+      expect(notificationsGateway.notifyUser).toHaveBeenCalledWith(
+        mockUser.id,
+        expect.objectContaining({
+          type: 'request_accepted',
+          fromUser: mockUser2.name,
+          skillName: mockSkillOffered.title,
+          // timestamp: expect.anything(),
+        }),
+      );
+
+      // Email отправителю
+      expect(mockMailService.send).toHaveBeenCalledTimes(1);
+      expect(mockMailService.send).toHaveBeenCalledWith(
+        expect.objectContaining({
+          to: 'ivan@example.com',
+          subject: 'Ваша заявка принята на SkillSwap',
+        }),
+      );
+    });
   });
 
   describe('reject - отклонение заявки', () => {
@@ -607,6 +655,14 @@ describe('RequestsService', () => {
 
       const removeMock = requestRepository.remove as jest.Mock;
       removeMock.mockResolvedValue(undefined as never);
+    });
+
+    it('должен выбросить NotFoundException если заявка не найдена при удалении', async () => {
+      (requestRepository.findOne as jest.Mock).mockResolvedValue(null);
+
+      await expect(service.remove('unknown-id', mockUser.id)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('должен удалить заявку как отправитель', async () => {
