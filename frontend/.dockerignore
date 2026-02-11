@@ -1,0 +1,27 @@
+# Зависимости
+node_modules
+
+# Системные и IDE
+.git
+.gitignore
+.env
+.env.local
+.env.*
+.DS_Store
+.vscode
+.idea
+
+# Логи и артефакты тестов
+*.log
+coverage/
+tmp/
+.nyc_output/
+
+# Собранные файлы (генерируются при сборке)
+dist/
+build/
+
+# Документация и прочее
+docs/
+README.md
+storybook-static/

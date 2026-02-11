@@ -29,16 +29,27 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
 
-    "baseUrl": "src",
+    // "baseUrl": "src",
+    "baseUrl": ".",
+    // "paths": {
+    //   "@/*": ["*"],
+    //   "@/app/*": ["app/*"],
+    //   "@/pages/*": ["pages/*"],
+    //   "@/services/*": ["services/*"],
+    //   "@/widgets/*": ["widgets/*"],
+    //   "@/features/*": ["features/*"],
+    //   "@/entities/*": ["entities/*"],
+    //   "@/shared/*": ["shared/*"]
+    // }
     "paths": {
-      "@/*": ["*"],
-      "@/app/*": ["app/*"],
-      "@/pages/*": ["pages/*"],
-      "@/services/*": ["services/*"],
-      "@/widgets/*": ["widgets/*"],
-      "@/features/*": ["features/*"],
-      "@/entities/*": ["entities/*"],
-      "@/shared/*": ["shared/*"]
+      "@/*": ["src/*"],
+      "@/app/*": ["src/app/*"],
+      "@/pages/*": ["src/pages/*"],
+      "@/services/*": ["src/services/*"],
+      "@/widgets/*": ["src/widgets/*"],
+      "@/features/*": ["src/features/*"],
+      "@/entities/*": ["src/entities/*"],
+      "@/shared/*": ["src/shared/*"]
     }
   },
   "include": ["src"]
