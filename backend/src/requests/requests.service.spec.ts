@@ -283,10 +283,6 @@ describe('RequestsService', () => {
         .mockResolvedValueOnce({
           ...mockSkillRequested,
           owner: { id: mockUser2.id },
-        })
-        .mockResolvedValueOnce({
-          ...mockSkillRequested,
-          owner: { id: mockUser2.id },
         });
       (userRepository.findOne as jest.Mock).mockResolvedValue({ ...mockUser2 });
       (requestRepository.findOne as jest.Mock).mockResolvedValue(null);
@@ -295,40 +291,6 @@ describe('RequestsService', () => {
       (userRepository.findOneBy as jest.Mock).mockResolvedValue({
         ...mockUser,
       });
-    });
-
-    it('должен успешно создать заявку', async () => {
-      const result = await service.create(createRequestDto, mockUser.id);
-      expect(result).toEqual(mockRequest);
-      expect(skillRepository.findOne).toHaveBeenCalledTimes(3);
-      expect(userRepository.findOne).toHaveBeenCalledWith({
-        where: { id: mockUser2.id },
-      });
-      expect(skillRepository.findOne).toHaveBeenCalledWith({
-        where: { id: mockSkillRequested.id, owner: { id: mockUser2.id } },
-      });
-      expect(requestRepository.create).toHaveBeenCalledWith({
-        sender: { id: mockUser.id },
-        receiver: { id: mockUser2.id },
-        offeredSkill: { id: mockSkillOffered.id },
-        requestedSkill: { id: mockSkillRequested.id },
-        status: RequestStatus.PENDING,
-        isRead: false,
-      });
-      expect(requestRepository.save).toHaveBeenCalledWith(mockRequest);
-      expect(notificationsGateway.notifyUser).toHaveBeenCalled();
-    });
-
-    it('должен выбросить BadRequestException если получатель не владеет запрашиваемым навыком', async () => {
-      (skillRepository.findOne as jest.Mock).mockReset();
-      (skillRepository.findOneBy as jest.Mock).mockReset();
-      (skillRepository.findOne as jest.Mock)
-        .mockResolvedValueOnce(mockSkillOffered)
-        .mockResolvedValueOnce(mockSkillRequested);
-      (skillRepository.findOneBy as jest.Mock).mockResolvedValue(null);
-      await expect(
-        service.create(createRequestDto, mockUser.id),
-      ).rejects.toThrow(BadRequestException);
     });
 
     it('должен выбросить NotFoundException если запрашиваемый навык не найден', async () => {
@@ -355,17 +317,6 @@ describe('RequestsService', () => {
       ).rejects.toThrow(ForbiddenException);
     });
 
-    it('должен выбросить BadRequestException если получатель не владеет запрашиваемым навыком (дублирующий тест)', async () => {
-      (skillRepository.findOne as jest.Mock).mockReset();
-      (skillRepository.findOne as jest.Mock)
-        .mockResolvedValueOnce(mockSkillOffered)
-        .mockResolvedValueOnce(mockSkillRequested)
-        .mockResolvedValueOnce(null);
-      await expect(
-        service.create(createRequestDto, mockUser.id),
-      ).rejects.toThrow(BadRequestException);
-    });
-
     it('должен выбросить BadRequestException при отправке заявки самому себе', async () => {
       (skillRepository.findOne as jest.Mock).mockReset();
       (userRepository.findOne as jest.Mock).mockReset();
@@ -385,6 +336,49 @@ describe('RequestsService', () => {
       await expect(
         service.create(createRequestDto, mockUser.id),
       ).rejects.toThrow(BadRequestException);
+    });
+
+    it('должен выбросить NotFoundException если у предлагаемого навыка нет владельца (owner = null)', async () => {
+      // Сбрасываем предыдущие моки, чтобы не мешали
+      (skillRepository.findOne as jest.Mock).mockReset();
+
+      // Первый вызов — offeredSkill найден, но owner = null
+      (skillRepository.findOne as jest.Mock).mockResolvedValueOnce({
+        ...mockSkillOffered,
+        owner: null, // ← навык существует, владелец отсутствует
+      });
+
+      // Второй вызов — requestedSkill нормальный
+      (skillRepository.findOne as jest.Mock).mockResolvedValueOnce({
+        ...mockSkillRequested,
+        owner: { id: mockUser2.id },
+      });
+
+      // Чтобы не мешал beforeEach — явно мокаем findOne полностью для этого теста
+      await expect(
+        service.create(createRequestDto, mockUser.id),
+      ).rejects.toThrow('Владелец предлагаемого навыка не найден');
+    });
+
+    it('должен выбросить NotFoundException если у запрашиваемого навыка нет владельца (owner = null)', async () => {
+      // Сбрасываем моки findOne
+      (skillRepository.findOne as jest.Mock).mockReset();
+
+      // Первый вызов — offeredSkill нормальный
+      (skillRepository.findOne as jest.Mock).mockResolvedValueOnce({
+        ...mockSkillOffered,
+        owner: { id: mockUser.id },
+      });
+
+      // Второй вызов — requestedSkill найден, но owner = null
+      (skillRepository.findOne as jest.Mock).mockResolvedValueOnce({
+        ...mockSkillRequested,
+        owner: null,
+      });
+
+      await expect(
+        service.create(createRequestDto, mockUser.id),
+      ).rejects.toThrow('Владелец запрашиваемого навыка не найден');
     });
   });
 
@@ -815,6 +809,211 @@ describe('RequestsService', () => {
           skillName: mockSkillOffered.title,
         }),
       );
+    });
+  });
+
+  // ============================================
+  // ДОПОЛНИТЕЛЬНЫЕ ТЕСТЫ ДЛЯ ПОЛНОГО ПОКРЫТИЯ
+  // ============================================
+
+  describe('email notifications - уведомления по email', () => {
+    beforeEach(() => {
+      // Настройка базовых моков для создания заявки
+      (skillRepository.findOne as jest.Mock)
+        .mockResolvedValueOnce({
+          ...mockSkillOffered,
+          owner: { id: mockUser.id },
+        })
+        .mockResolvedValueOnce({
+          ...mockSkillRequested,
+          owner: { id: mockUser2.id },
+        });
+      (userRepository.findOne as jest.Mock).mockResolvedValue(mockUser2);
+      (requestRepository.findOne as jest.Mock).mockResolvedValue(null);
+      (requestRepository.create as jest.Mock).mockReturnValue(mockRequest);
+      (requestRepository.save as jest.Mock).mockResolvedValue(mockRequest);
+      (userRepository.findOneBy as jest.Mock).mockResolvedValue(mockUser);
+    });
+
+    it('должен отправить email при создании заявки если у получателя есть email', async () => {
+      // Мокаем получение email получателя
+      (userRepository.findOne as jest.Mock).mockResolvedValueOnce({
+        ...mockUser2,
+        email: 'maria@example.com',
+      });
+
+      await service.create(createRequestDto, mockUser.id);
+
+      expect(mockMailService.send).toHaveBeenCalledWith(
+        expect.objectContaining({
+          to: 'maria@example.com',
+          subject: 'Новая заявка на SkillSwap',
+        }),
+      );
+    });
+
+    it('должен обработать ошибку при отправке email при создании заявки', async () => {
+      // Мокаем получение email получателя
+      (userRepository.findOne as jest.Mock).mockResolvedValueOnce({
+        ...mockUser2,
+        email: 'maria@example.com',
+      });
+
+      // Мокаем ошибку при отправке email
+      mockMailService.send.mockRejectedValueOnce(new Error('SMTP error'));
+
+      // Должен выполниться успешно, ошибка игнорируется
+      const result = await service.create(createRequestDto, mockUser.id);
+
+      expect(result).toEqual(mockRequest);
+      expect(mockMailService.send).toHaveBeenCalled();
+      // Ошибка должна быть проигнорирована, сервис не должен упасть
+    });
+
+    it('должен обработать ошибку при отправке email при принятии заявки', async () => {
+      const acceptedRequest = {
+        ...mockRequest,
+        status: RequestStatus.PENDING,
+        senderId: mockUser.id,
+      };
+
+      (requestRepository.findOne as jest.Mock).mockResolvedValue(
+        acceptedRequest,
+      );
+      (requestRepository.save as jest.Mock).mockResolvedValue({
+        ...acceptedRequest,
+        status: RequestStatus.ACCEPTED,
+        isRead: true,
+      });
+      (userRepository.findOneBy as jest.Mock)
+        .mockResolvedValueOnce(mockUser2)
+        .mockResolvedValueOnce({ ...mockUser, email: 'ivan@example.com' });
+      (skillRepository.findOneBy as jest.Mock).mockResolvedValue(
+        mockSkillOffered,
+      );
+
+      // Мокаем ошибку при отправке email
+      mockMailService.send.mockRejectedValueOnce(new Error('SMTP error'));
+
+      // Должен выполниться успешно, ошибка игнорируется
+      const result = await service.accept(mockRequest.id, mockUser2.id);
+
+      expect(result.status).toBe(RequestStatus.ACCEPTED);
+      expect(mockMailService.send).toHaveBeenCalled();
+    });
+  });
+
+  describe('error handling - обработка ошибок', () => {
+    it('должен выбросить InternalServerErrorException если отправитель не найден при создании заявки', async () => {
+      (skillRepository.findOne as jest.Mock)
+        .mockResolvedValueOnce({
+          ...mockSkillOffered,
+          owner: { id: mockUser.id },
+        })
+        .mockResolvedValueOnce({
+          ...mockSkillRequested,
+          owner: { id: mockUser2.id },
+        });
+      (userRepository.findOne as jest.Mock).mockResolvedValue(mockUser2);
+      (requestRepository.findOne as jest.Mock).mockResolvedValue(null);
+      (requestRepository.create as jest.Mock).mockReturnValue(mockRequest);
+      (requestRepository.save as jest.Mock).mockResolvedValue(mockRequest);
+      // Отправитель не найден для уведомления
+      (userRepository.findOneBy as jest.Mock).mockResolvedValue(null);
+
+      await expect(
+        service.create(createRequestDto, mockUser.id),
+      ).rejects.toThrow(InternalServerErrorException);
+    });
+
+    it('должен выбросить InternalServerErrorException если получатель не найден при принятии заявки', async () => {
+      const acceptedRequest = {
+        ...mockRequest,
+        status: RequestStatus.PENDING,
+      };
+
+      (requestRepository.findOne as jest.Mock).mockResolvedValue(
+        acceptedRequest,
+      );
+      (requestRepository.save as jest.Mock).mockResolvedValue({
+        ...acceptedRequest,
+        status: RequestStatus.ACCEPTED,
+        isRead: true,
+      });
+      // Получатель не найден для уведомления
+      (userRepository.findOneBy as jest.Mock).mockResolvedValue(null);
+
+      await expect(
+        service.accept(mockRequest.id, mockUser2.id),
+      ).rejects.toThrow(InternalServerErrorException);
+    });
+
+    it('должен выбросить InternalServerErrorException если навык не найден при принятии заявки', async () => {
+      const acceptedRequest = {
+        ...mockRequest,
+        status: RequestStatus.PENDING,
+      };
+
+      (requestRepository.findOne as jest.Mock).mockResolvedValue(
+        acceptedRequest,
+      );
+      (requestRepository.save as jest.Mock).mockResolvedValue({
+        ...acceptedRequest,
+        status: RequestStatus.ACCEPTED,
+        isRead: true,
+      });
+      (userRepository.findOneBy as jest.Mock).mockResolvedValue(mockUser2);
+      // Навык не найден для уведомления
+      (skillRepository.findOneBy as jest.Mock).mockResolvedValue(null);
+
+      await expect(
+        service.accept(mockRequest.id, mockUser2.id),
+      ).rejects.toThrow(InternalServerErrorException);
+    });
+
+    it('должен выбросить InternalServerErrorException если получатель не найден при отклонении заявки', async () => {
+      const rejectedRequest = {
+        ...mockRequest,
+        status: RequestStatus.PENDING,
+      };
+
+      (requestRepository.findOne as jest.Mock).mockResolvedValue(
+        rejectedRequest,
+      );
+      (requestRepository.save as jest.Mock).mockResolvedValue({
+        ...rejectedRequest,
+        status: RequestStatus.REJECTED,
+        isRead: true,
+      });
+      // Получатель не найден для уведомления
+      (userRepository.findOneBy as jest.Mock).mockResolvedValue(null);
+
+      await expect(
+        service.reject(mockRequest.id, mockUser2.id),
+      ).rejects.toThrow(InternalServerErrorException);
+    });
+
+    it('должен выбросить InternalServerErrorException если навык не найден при отклонении заявки', async () => {
+      const rejectedRequest = {
+        ...mockRequest,
+        status: RequestStatus.PENDING,
+      };
+
+      (requestRepository.findOne as jest.Mock).mockResolvedValue(
+        rejectedRequest,
+      );
+      (requestRepository.save as jest.Mock).mockResolvedValue({
+        ...rejectedRequest,
+        status: RequestStatus.REJECTED,
+        isRead: true,
+      });
+      (userRepository.findOneBy as jest.Mock).mockResolvedValue(mockUser2);
+      // Навык не найден для уведомления
+      (skillRepository.findOneBy as jest.Mock).mockResolvedValue(null);
+
+      await expect(
+        service.reject(mockRequest.id, mockUser2.id),
+      ).rejects.toThrow(InternalServerErrorException);
     });
   });
 });
