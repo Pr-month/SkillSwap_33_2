@@ -17,13 +17,49 @@ current_branch=$(git rev-parse --abbrev-ref HEAD)
 #   fi
 # fi
 
-valid_branch_regex="^week[0-9]+.*$"
+# valid_branch_regex="^week[0-9]+.*$"
 
-if [[ "$current_branch" != "main" && "$current_branch" != "master" && "$current_branch" != "dev" ]]; then
-  if ! [[ "$current_branch" =~ ^week[0-9]+ ]]; then
-    echo "❌ Ветка должна начинаться с 'week' (например, week5-...)"
-    exit 1
-  fi
+# if [[ "$current_branch" != "main" && "$current_branch" != "master" && "$current_branch" != "dev" ]]; then
+#   if ! [[ "$current_branch" =~ ^week[0-9]+ ]]; then
+#     echo "❌ Ветка должна начинаться с 'week' (например, week5-...)"
+#     exit 1
+#   fi
+# fi
+
+# Разрешённые системные ветки — пропускаем проверку
+if [ "$current_branch" = "main" ] || [ "$current_branch" = "master" ] || [ "$current_branch" = "dev" ]; then
+  exit 0
 fi
 
+# Проверка существования локальной ветки dev
+if ! git show-ref --verify --quiet refs/heads/dev 2>/dev/null; then
+  echo "❌ Ветка 'dev' не найдена локально."
+  echo "👉 Выполни: git fetch origin dev:dev"
+  exit 1
+fi
+
+# Валидация формата имени: dev-<номер>-<логин>
+if ! echo "$current_branch" | grep -Eq "^dev-[0-9]+-[a-zA-Z0-9_-]+$"; then
+  echo "❌ Неправильное имя ветки '$current_branch'."
+  echo "👉 Имя должно соответствовать шаблону: dev-<номер_задачи>-<логин_разработчика>"
+  echo ""
+  echo "   Примеры:"
+  echo "     • dev-195-i-bocharov"
+  exit 1
+fi
+
+# ✅ КОРРЕКТНАЯ проверка: ветка основана на истории dev
+# git merge-base --is-ancestor A B → успех (0), если A является предком B
+if ! git merge-base --is-ancestor dev HEAD 2>/dev/null; then
+  echo "❌ Ветка '$current_branch' не основана на ветке 'dev'."
+  echo "👉 Создай ветку от актуального 'dev':"
+  echo "   1. git checkout dev"
+  echo "   2. git pull origin dev"
+  echo "   3. git checkout -b dev-<номер>-<логин>"
+  exit 1
+fi
+
+echo "✅ Ветка '$current_branch' прошла проверку:"
+echo "   • Формат: dev-<номер>-<логин>"
+echo "   • История основана на ветке 'dev'"
 exit 0

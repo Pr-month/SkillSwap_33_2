@@ -20,3 +20,6 @@ logs/
 # Temporary files
 tmp/
 .temp/
+
+# Environment variables (secrets)
+.env

@@ -25,7 +25,7 @@
     "seed:skills": "node -r ts-node/register src/seeding/seed-skills.ts",
     "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
     "db:drop:test": "cross-env NODE_ENV=test npm run typeorm -- schema:drop -d src/config/db.config.ts",
-    "db:seed:test": "cross-env NODE_ENV=test npm run seed:users && cross-env NODE_ENV=test npm run seed:categories"
+    "db:seed:test": "cross-env NODE_ENV=test npm run seed:categories && cross-env NODE_ENV=test npm run seed:users"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

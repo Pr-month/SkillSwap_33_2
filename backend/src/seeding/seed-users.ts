@@ -12,6 +12,7 @@ async function seedUsers() {
   try {
     if (!AppDataSource.isInitialized) {
       await AppDataSource.initialize();
+      await AppDataSource.synchronize();
     }
 
     console.log('✅ Подключено к БД');
@@ -19,9 +20,19 @@ async function seedUsers() {
     const userRepository = AppDataSource.getRepository(User);
     const categoryRepository = AppDataSource.getRepository(Category);
 
-    // Очистка (опционально)
-    await userRepository.query('TRUNCATE TABLE "user" CASCADE');
-    console.log('🧹 Старые пользователи удалены');
+    // Очистка - пропускаем в тестовом окружении
+    if (process.env.NODE_ENV !== 'test') {
+      try {
+        await userRepository.clear();
+        console.log('🧹 Старые пользователи удалены');
+      } catch (error: unknown) {
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+        console.log('⚠️  Не удалось очистить таблицу users:', errorMessage);
+      }
+    } else {
+      console.log('ℹ️  В тестовом окружении пропускаем очистку users');
+    }
 
     // Получаем все дочерние категории (подкатегории)
     const allSubcategories = await categoryRepository.find({

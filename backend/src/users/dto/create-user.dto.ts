@@ -5,14 +5,17 @@ export class CreateUserDto {
   @MinLength(8, {
     message: 'Пароль должен содержать минимум 8 символов',
   })
-  @ValidateIf((dto) => /[A-Z]/.test(dto.newPassword), {
+  @ValidateIf((dto: CreateUserDto) => /[A-Z]/.test(dto.password), {
     message: 'Пароль должен содержать хотя бы одну заглавную букву.',
   })
-  @ValidateIf((dto) => /\d/.test(dto.newPassword), {
+  @ValidateIf((dto: CreateUserDto) => /\d/.test(dto.password), {
     message: 'Пароль должен содержать хотя бы одну цифру.',
   })
-  @ValidateIf((dto) => /[!@#$%^&*(),.?":{}|<>]/.test(dto.newPassword), {
-    message: 'Пароль должен содержать хотя бы один спецсимвол.',
-  })
+  @ValidateIf(
+    (dto: CreateUserDto) => /[!@#$%^&*(),.?":{}|<>]/.test(dto.password),
+    {
+      message: 'Пароль должен содержать хотя бы один спецсимвол.',
+    },
+  )
   password: string;
 }

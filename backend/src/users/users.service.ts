@@ -15,6 +15,7 @@ import { Repository } from 'typeorm';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
+import { GenderOption, UserRole } from './enums';
 
 @Injectable()
 export class UsersService {
@@ -93,7 +94,7 @@ export class UsersService {
     }
 
     const cleanUpdateData = Object.fromEntries(
-      Object.entries(updateData).filter(([_, value]) => value !== undefined),
+      Object.entries(updateData).filter((entry) => entry[1] !== undefined),
     );
 
     Object.assign(user, cleanUpdateData);
@@ -157,8 +158,8 @@ export class UsersService {
     name?: string;
     email?: string;
     city?: string;
-    role?: string;
-    gender?: string;
+    role?: UserRole;
+    gender?: GenderOption;
   }) {
     const query = this.usersRepository.createQueryBuilder('user');
     if (name) {
