@@ -57,6 +57,11 @@ COPY --from=builder /app/dist ./dist
 # Копируем package.json (важно: без devDependencies).
 COPY package.json ./package.json
 
+# Создаём директорию для логов и передаём владение пользователю node
+RUN mkdir -p logs && \
+  chown node:node logs && \
+  chmod 755 logs
+
 # Запускаем контейнер от непривилегированного пользователя.
 # Это повышает безопасность в production.
 USER node

@@ -5,8 +5,7 @@ import * as csurf from 'csurf';
 @Injectable()
 export class CsrfMiddleware implements NestMiddleware {
   private readonly isProduction = process.env.NODE_ENV === 'production';
-  private readonly disableCsrf =
-    process.env.DISABLE_CSRF === 'true' || !this.isProduction;
+  private readonly disableCsrf = process.env.DISABLE_CSRF === 'true';
 
   private readonly csrfProtection = csurf({
     cookie: {
@@ -18,9 +17,12 @@ export class CsrfMiddleware implements NestMiddleware {
 
   use(req: Request, res: Response, next: NextFunction) {
     if (this.disableCsrf) {
-      console.log('CSRF protection disabled');
+      console.log('⚠️ CSRF protection disabled');
       return next();
     }
+
+    console.log('✅ CSRF protection enabled');
+
     // Особый случай: GET /api/auth/csrf-token должен пройти через csurf
     if (req.method === 'GET' && req.path === '/api/auth/csrf-token') {
       return this.csrfProtection(req, res, next);
